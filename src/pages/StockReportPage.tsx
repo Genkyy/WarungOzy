@@ -7,7 +7,9 @@ import {
   PackageCheck,
   Search,
   Plus,
-  ArrowUpDown
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export const StockReportPage: React.FC = () => {
@@ -16,6 +18,11 @@ export const StockReportPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [adjustingProduct, setAdjustingProduct] = useState<MenuItem | null>(null);
+
+  // Pagination States (Strictly 10 items per page)
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [movementsPage, setMovementsPage] = useState<number>(1);
+  const itemsPerPage = 10;
 
   const lowStockThreshold = parseInt(settings.low_stock_threshold, 10) || 5;
 
@@ -27,6 +34,12 @@ export const StockReportPage: React.FC = () => {
   useEffect(() => {
     loadMovements();
   }, []);
+
+  // Reset pagination when search or tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setMovementsPage(1);
+  }, [searchQuery, activeSubTab]);
 
   const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= lowStockThreshold);
   const outOfStockProducts = products.filter((p) => p.stock <= 0);
@@ -40,8 +53,22 @@ export const StockReportPage: React.FC = () => {
     );
   });
 
+  // Calculate Paginated Data for Master Stock
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Calculate Paginated Data for Movements
+  const totalMovementsPages = Math.ceil(movements.length / itemsPerPage) || 1;
+  const paginatedMovements = movements.slice(
+    (movementsPage - 1) * itemsPerPage,
+    movementsPage * itemsPerPage
+  );
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0b0f19] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-20 ipad:pb-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0b0f19] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-20 ipad:pb-6 select-none">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -104,7 +131,7 @@ export const StockReportPage: React.FC = () => {
         </button>
       </div>
 
-      {/* SUB TAB 1: Inventory Table */}
+      {/* SUB TAB 1: Inventory Table with 10 Items/Page Pagination */}
       {activeSubTab === 'inventory' && (
         <div className="space-y-4">
           <div className="relative max-w-md">
@@ -118,7 +145,7 @@ export const StockReportPage: React.FC = () => {
             />
           </div>
 
-          <div className="glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl">
+          <div className="glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl flex flex-col justify-between">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#151c2c] text-slate-400 font-semibold border-b border-[#232d42]">
@@ -133,47 +160,101 @@ export const StockReportPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#232d42]/60 text-slate-300">
-                  {filteredProducts.map((prod) => {
-                    const isOut = prod.stock <= 0;
-                    const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
-                    return (
-                      <tr key={prod.id} className="hover:bg-[#151c2c]/50 transition-all">
-                        <td className="p-3.5 font-semibold text-white">{prod.name}</td>
-                        <td className="p-3.5 font-mono text-cyan-400">{prod.barcode || '-'}</td>
-                        <td className="p-3.5 text-slate-400 font-mono">Rp {prod.cost_price.toLocaleString('id-ID')}</td>
-                        <td className="p-3.5 font-bold text-white font-mono">Rp {prod.price.toLocaleString('id-ID')}</td>
-                        <td className="p-3.5 font-extrabold text-white">{prod.stock} {prod.unit}</td>
-                        <td className="p-3.5">
-                          {isOut ? (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold">Habis</span>
-                          ) : isLow ? (
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold">Menipis</span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">Aman</span>
-                          )}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          <button
-                            onClick={() => setAdjustingProduct(prod)}
-                            className="px-3 py-1.5 rounded-lg bg-[#151c2c] hover:bg-slate-700 border border-[#232d42] text-cyan-400 text-[11px] font-medium transition-all"
-                          >
-                            <ArrowUpDown className="w-3.5 h-3.5 inline mr-1" />
-                            Adjust Stok
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {paginatedProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-6 text-center text-slate-500">
+                        Tidak ada produk ditemukan
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedProducts.map((prod) => {
+                      const isOut = prod.stock <= 0;
+                      const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
+                      return (
+                        <tr key={prod.id} className="hover:bg-[#151c2c]/50 transition-all">
+                          <td className="p-3.5 font-semibold text-white">{prod.name}</td>
+                          <td className="p-3.5 font-mono text-cyan-400">{prod.barcode || '-'}</td>
+                          <td className="p-3.5 text-slate-400 font-mono">Rp {prod.cost_price.toLocaleString('id-ID')}</td>
+                          <td className="p-3.5 font-bold text-white font-mono">Rp {prod.price.toLocaleString('id-ID')}</td>
+                          <td className="p-3.5 font-extrabold text-white">{prod.stock} {prod.unit}</td>
+                          <td className="p-3.5">
+                            {isOut ? (
+                              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold">Habis</span>
+                            ) : isLow ? (
+                              <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold">Menipis</span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">Aman</span>
+                            )}
+                          </td>
+                          <td className="p-3.5 text-right">
+                            <button
+                              onClick={() => setAdjustingProduct(prod)}
+                              className="px-3 py-1.5 rounded-lg bg-[#151c2c] hover:bg-slate-700 border border-[#232d42] text-cyan-400 text-[11px] font-medium transition-all"
+                            >
+                              <ArrowUpDown className="w-3.5 h-3.5 inline mr-1" />
+                              Adjust Stok
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination Controls Bar (10 products per page) */}
+            {filteredProducts.length > 0 && (
+              <div className="p-3.5 bg-[#151c2c] border-t border-[#232d42] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="text-slate-400">
+                  Menampilkan <span className="font-bold text-white font-mono">{((currentPage - 1) * itemsPerPage) + 1}</span> - <span className="font-bold text-white font-mono">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> dari <span className="font-bold text-white font-mono">{filteredProducts.length}</span> produk
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1.5 rounded-xl bg-[#0b0f19] border border-[#232d42] text-slate-300 hover:text-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-all min-h-[36px]"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span>Sebelumnya</span>
+                  </button>
+
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all ${
+                          currentPage === pageNum
+                            ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                            : 'bg-[#0b0f19] text-slate-400 hover:text-white border border-[#232d42]'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1.5 rounded-xl bg-[#0b0f19] border border-[#232d42] text-slate-300 hover:text-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-all min-h-[36px]"
+                  >
+                    <span>Selanjutnya</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* SUB TAB 2: Movements Log */}
+      {/* SUB TAB 2: Movements Log with 10 Items/Page Pagination */}
       {activeSubTab === 'movements' && (
-        <div className="glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl">
+        <div className="glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl flex flex-col justify-between">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-[#151c2c] text-slate-400 font-semibold border-b border-[#232d42]">
@@ -185,12 +266,12 @@ export const StockReportPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#232d42]/60 text-slate-300">
-                {movements.length === 0 ? (
+                {paginatedMovements.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="p-6 text-center text-slate-500">Belum ada riwayat mutasi stok</td>
                   </tr>
                 ) : (
-                  movements.map((mov) => (
+                  paginatedMovements.map((mov) => (
                     <tr key={mov.id} className="hover:bg-[#151c2c]/50">
                       <td className="p-3.5 text-slate-400 whitespace-nowrap">{new Date(mov.created_at).toLocaleString('id-ID')}</td>
                       <td className="p-3.5 font-semibold text-white">{mov.product_name}</td>
@@ -214,6 +295,51 @@ export const StockReportPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Movements Pagination Controls Bar */}
+          {movements.length > 0 && (
+            <div className="p-3.5 bg-[#151c2c] border-t border-[#232d42] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="text-slate-400">
+                Menampilkan <span className="font-bold text-white font-mono">{((movementsPage - 1) * itemsPerPage) + 1}</span> - <span className="font-bold text-white font-mono">{Math.min(movementsPage * itemsPerPage, movements.length)}</span> dari <span className="font-bold text-white font-mono">{movements.length}</span> mutasi
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  disabled={movementsPage === 1}
+                  onClick={() => setMovementsPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1.5 rounded-xl bg-[#0b0f19] border border-[#232d42] text-slate-300 hover:text-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-all min-h-[36px]"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Sebelumnya</span>
+                </button>
+
+                <div className="flex items-center gap-1 px-1">
+                  {Array.from({ length: totalMovementsPages }, (_, i) => i + 1).map((pageNum) => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setMovementsPage(pageNum)}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold font-mono transition-all ${
+                        movementsPage === pageNum
+                          ? 'bg-cyan-500 text-slate-950 shadow-sm'
+                          : 'bg-[#0b0f19] text-slate-400 hover:text-white border border-[#232d42]'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  disabled={movementsPage >= totalMovementsPages}
+                  onClick={() => setMovementsPage((p) => Math.min(totalMovementsPages, p + 1))}
+                  className="px-3 py-1.5 rounded-xl bg-[#0b0f19] border border-[#232d42] text-slate-300 hover:text-cyan-400 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1 transition-all min-h-[36px]"
+                >
+                  <span>Selanjutnya</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
