@@ -75,27 +75,27 @@ export const ExpensesPage: React.FC = () => {
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-[#0b0f19] space-y-6 h-[calc(100vh-4rem)]">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#0b0f19] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6 select-none">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
             <TrendingDown className="w-5 h-5 text-rose-400" />
             Pencatatan Pengeluaran Warung
           </h1>
           <p className="text-xs text-slate-400">Catat Uang Keluar untuk Kulakan Stok, Listrik, Kebersihan, & Operasional</p>
         </div>
 
-        <div className="bg-[#151c2c] px-4 py-2 rounded-xl border border-rose-500/30 text-right">
+        <div className="bg-[#151c2c] px-4 py-2 rounded-xl border border-rose-500/30 text-right self-start sm:self-auto">
           <span className="text-[10px] text-slate-400 block uppercase">Total Pengeluaran</span>
-          <span className="text-lg font-black text-rose-400">Rp {totalExpenseAmount.toLocaleString('id-ID')}</span>
+          <span className="text-lg font-black text-rose-400 font-mono">Rp {totalExpenseAmount.toLocaleString('id-ID')}</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Form Add Expense (1 Col) */}
-        <div className="glass-panel rounded-2xl p-5 border border-[#232d42] space-y-4">
-          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+        <div className="glass-panel rounded-2xl p-4 sm:p-5 border border-[#232d42] space-y-4">
+          <h2 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
             <Plus className="w-4 h-4 text-cyan-400" />
             Input Pengeluaran Baru
           </h2>
@@ -131,11 +131,13 @@ export const ExpensesPage: React.FC = () => {
               <label className="block text-xs font-medium text-slate-300 mb-1">Nominal (Rp) *</label>
               <input
                 type="number"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="150000"
-                className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3 py-2 text-xs font-bold text-rose-400 focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3 py-2 text-xs font-bold text-rose-400 focus:outline-none focus:border-cyan-500 font-mono"
               />
             </div>
 
@@ -163,7 +165,7 @@ export const ExpensesPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white font-bold text-xs shadow-md shadow-rose-500/20"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white font-bold text-xs shadow-md shadow-rose-500/20 active:scale-95 transition-all"
             >
               {isSubmitting ? 'Menyimpan...' : 'Simpan Pengeluaran'}
             </button>
@@ -171,8 +173,8 @@ export const ExpensesPage: React.FC = () => {
         </div>
 
         {/* Expenses List (2 Cols) */}
-        <div className="lg:col-span-2 glass-panel rounded-2xl p-5 border border-[#232d42] space-y-4">
-          <h2 className="text-sm font-bold text-white">Daftar Pengeluaran Terdaftar</h2>
+        <div className="lg:col-span-2 glass-panel rounded-2xl p-4 sm:p-5 border border-[#232d42] space-y-4">
+          <h2 className="text-xs sm:text-sm font-bold text-white">Daftar Pengeluaran Terdaftar</h2>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -193,14 +195,14 @@ export const ExpensesPage: React.FC = () => {
                 ) : (
                   expenses.map((item) => (
                     <tr key={item.id} className="hover:bg-[#151c2c]/50 transition-all">
-                      <td className="p-3 text-slate-400">{item.expense_date}</td>
+                      <td className="p-3 text-slate-400 whitespace-nowrap">{item.expense_date}</td>
                       <td className="p-3">
                         <span className="px-2 py-0.5 rounded bg-[#232d42] text-slate-300 text-[10px] uppercase font-bold">
                           {item.category.replace('_', ' ')}
                         </span>
                       </td>
                       <td className="p-3 font-semibold text-white">{item.description}</td>
-                      <td className="p-3 font-bold text-rose-400">Rp {item.amount.toLocaleString('id-ID')}</td>
+                      <td className="p-3 font-bold text-rose-400 font-mono">Rp {item.amount.toLocaleString('id-ID')}</td>
                       <td className="p-3 text-right">
                         <button
                           onClick={() => handleDeleteExpense(item.id!)}

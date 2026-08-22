@@ -9,7 +9,9 @@ import {
   RotateCcw,
   Printer,
   X,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  Calendar
 } from 'lucide-react';
 
 export const OrdersPage: React.FC = () => {
@@ -83,11 +85,11 @@ export const OrdersPage: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-[#0b0f19] space-y-6 h-[calc(100vh-4rem)]">
+    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 bg-[#0b0f19] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6 select-none">
       {/* Title Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
+          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
             <Receipt className="w-5 h-5 text-cyan-400" />
             Riwayat Nota & Transaksi
           </h1>
@@ -107,8 +109,85 @@ export const OrdersPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl">
+      {/* 1. MOBILE VIEW (< 768px): Responsive Order Cards */}
+      <div className="block md:hidden space-y-3">
+        {filteredOrders.length === 0 ? (
+          <div className="glass-panel p-8 rounded-2xl border border-[#232d42] text-center text-slate-500 text-xs">
+            Tidak ada riwayat transaksi ditemukan
+          </div>
+        ) : (
+          filteredOrders.map((order) => {
+            const isCancelled = order.status === 'cancelled';
+            return (
+              <div
+                key={order.id}
+                className="bg-[#151c2c] border border-[#232d42] rounded-2xl p-4 space-y-3 shadow-lg"
+              >
+                {/* Header Row: Order Number & Status */}
+                <div className="flex items-center justify-between pb-2 border-b border-[#232d42]">
+                  <span className="font-mono font-extrabold text-xs text-cyan-400">
+                    {order.order_number}
+                  </span>
+                  {isCancelled ? (
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-[10px]">
+                      Void / Batal
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
+                      Selesai
+                    </span>
+                  )}
+                </div>
+
+                {/* Details Row: Customer Name & Date */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-300 font-medium">
+                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{order.customer_name || 'Pelanggan Umum'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
+                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{new Date(order.created_at).toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+
+                {/* Total & Action Row */}
+                <div className="flex items-center justify-between pt-2 border-t border-[#232d42]/60">
+                  <div>
+                    <span className="text-[10px] text-slate-400 block font-medium">Total Tagihan</span>
+                    <span className="font-extrabold text-sm text-white font-mono">
+                      Rp {order.total_amount.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleViewDetails(order.id!)}
+                      className="px-3 py-2 rounded-xl bg-[#0b0f19] hover:bg-[#232d42] border border-[#232d42] text-slate-300 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>Detail</span>
+                    </button>
+
+                    {!isCancelled && (
+                      <button
+                        onClick={() => handleReprintReceipt(order)}
+                        className="px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-bold flex items-center gap-1 transition-all active:scale-95"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Cetak</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* 2. TABLET & DESKTOP VIEW (>= 768px): Full HTML Table */}
+      <div className="hidden md:block glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#151c2c] text-slate-400 font-semibold border-b border-[#232d42]">
