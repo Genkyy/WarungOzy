@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/indexedDBRepository';
-import { X, Plus, PackagePlus } from 'lucide-react';
+import { openFoodFactsService } from '../services/openFoodFactsService';
+import { X, Plus, PackagePlus, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
 
 export const AddProductModal: React.FC = () => {
   const {
@@ -20,9 +21,38 @@ export const AddProductModal: React.FC = () => {
   const [stock, setStock] = useState<string>('10');
   const [unit, setUnit] = useState('Pcs');
   const [description, setDescription] = useState('');
+  const [imagePath, setImagePath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingOFF, setIsFetchingOFF] = useState(false);
 
   if (!isAddProductModalOpen) return null;
+
+  const handleFetchOpenFoodFacts = async () => {
+    if (!barcode.trim()) {
+      showToast('Masukkan Barcode terlebih dahulu!', 'error');
+      return;
+    }
+
+    setIsFetchingOFF(true);
+    try {
+      const res = await openFoodFactsService.fetchByBarcode(barcode);
+      if (res.success) {
+        if (res.imageUrl) {
+          setImagePath(res.imageUrl);
+        }
+        if (res.name && !name.trim()) {
+          setName(res.name);
+        }
+        showToast('Foto & data produk berhasil ditemukan via Open Food Facts!', 'success');
+      } else {
+        showToast(res.error || 'Produk tidak ditemukan di database Open Food Facts', 'error');
+      }
+    } catch (err) {
+      showToast('Gagal menghubungi Open Food Facts', 'error');
+    } finally {
+      setIsFetchingOFF(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +69,12 @@ export const AddProductModal: React.FC = () => {
         price: parseFloat(price) || 0,
         cost_price: parseFloat(costPrice) || 0,
         barcode: barcode.trim(),
-        stock: parseInt(stock, 10) || 0,
-        unit,
+        stock: parseInt(stock) || 0,
+        unit: unit,
         description: description.trim(),
+        image_path: imagePath.trim(),
         is_available: true,
-        sort_order: 99,
-        image_path: '' // Clean empty image path for honest category icon fallback (desain.md Section 4)
+        sort_order: 99
       });
 
       await fetchMasterData();
@@ -57,6 +87,7 @@ export const AddProductModal: React.FC = () => {
       setBarcode('');
       setStock('10');
       setDescription('');
+      setImagePath('');
     } catch (err) {
       console.error(err);
       showToast('Gagal menambahkan produk', 'error');
@@ -91,7 +122,7 @@ export const AddProductModal: React.FC = () => {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Misal: Indomie Ayam Bawang 85g"
+              placeholder="Misal: Indomie Goreng Spesial 85g"
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
             />
           </div>
@@ -118,7 +149,7 @@ export const AddProductModal: React.FC = () => {
                 onChange={(e) => setUnit(e.target.value)}
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
               >
-                {['Pcs', 'Kg', 'Botol', 'Bungkus', 'Liter', 'Renteng', 'Dus'].map((u) => (
+                {['Pcs', 'Kg', 'Botol', 'Bungkus', 'Liter', 'Renteng', 'Dus', 'Top Up', 'Voucher'].map((u) => (
                   <option key={u} value={u}>
                     {u}
                   </option>
@@ -146,31 +177,67 @@ export const AddProductModal: React.FC = () => {
                 value={costPrice}
                 onChange={(e) => setCostPrice(e.target.value)}
                 placeholder="2800"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#8A8175] focus:outline-none focus:border-[#D97706]"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#8A8175] focus:outline-none focus:border-[#D97706]"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-[#2A2622] mb-1">Barcode Pabrik</label>
+          {/* Barcode Field with Open Food Facts Auto-Lookup Button */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-[#2A2622]">Barcode Pabrik</label>
+              <button
+                type="button"
+                onClick={handleFetchOpenFoodFacts}
+                disabled={isFetchingOFF || !barcode.trim()}
+                className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                title="Cari Foto & Nama Produk Otomatis dari Database Open Food Facts"
+              >
+                {isFetchingOFF ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                <span>Auto-Fetch Open Food Facts</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
               <input
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 placeholder="8992388213148"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
+                className="col-span-2 bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
               />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-[#2A2622] mb-1">Stok Awal</label>
               <input
                 type="number"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                placeholder="10"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                placeholder="Stok Awal (10)"
+                className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
               />
+            </div>
+          </div>
+
+          {/* Product Image URL Field & Live Preview */}
+          <div>
+            <label className="block text-xs font-semibold text-[#2A2622] mb-1 flex items-center gap-1">
+              <ImageIcon className="w-3.5 h-3.5 text-[#D97706]" />
+              <span>URL Foto Produk (Otomatis / Custom)</span>
+            </label>
+            <div className="flex gap-2 items-center">
+              <input
+                type="text"
+                value={imagePath}
+                onChange={(e) => setImagePath(e.target.value)}
+                placeholder="https://images.openfoodfacts.org/..."
+                className="flex-1 bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+              />
+              {imagePath && (
+                <div className="w-10 h-10 rounded-xl bg-white border border-[#E8E2D8] overflow-hidden shrink-0">
+                  <img src={imagePath} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
           </div>
 

@@ -40,6 +40,7 @@ export const POSPage: React.FC = () => {
   } = usePOSStore();
 
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+  const [failedImageIds, setFailedImageIds] = useState<Record<number, boolean>>({});
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -155,10 +156,15 @@ export const POSPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 align-start">
               {filteredProducts.map((product) => {
-                const isOutOfStock = product.stock <= 0;
-                const isLowStock = product.stock > 0 && product.stock <= lowStockThreshold;
-
                 const catObj = displayCategories.find(c => c.id === product.category_id);
+                const isDigital = catObj?.name.toLowerCase().includes('top up') ||
+                                  catObj?.name.toLowerCase().includes('pulsa') ||
+                                  catObj?.name.toLowerCase().includes('digital') ||
+                                  product.unit === 'Top Up' ||
+                                  product.unit === 'Voucher';
+
+                const isOutOfStock = !isDigital && product.stock <= 0;
+                const isLowStock = !isDigital && product.stock > 0 && product.stock <= lowStockThreshold;
 
                 return (
                   <motion.div
@@ -171,27 +177,30 @@ export const POSPage: React.FC = () => {
                         : 'bg-white hover:border-[#D97706]'
                     }`}
                   >
-                    <div className="absolute top-2.5 right-2.5 z-20">
-                      {isOutOfStock ? (
-                        <span className="px-2 py-0.5 rounded-md bg-[#B84B3E] text-white font-bold text-[10px] shadow-sm">
-                          HABIS
-                        </span>
-                      ) : isLowStock ? (
-                        <span className="px-2 py-0.5 rounded-md bg-[#D4A017] text-white font-bold text-[10px] shadow-sm">
-                          Sisa {product.stock}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded-md bg-[#3F7D4F] text-white font-medium text-[10px] shadow-sm">
-                          {product.stock} {product.unit}
-                        </span>
-                      )}
-                    </div>
+                    {!isDigital && (
+                      <div className="absolute top-2.5 right-2.5 z-20">
+                        {isOutOfStock ? (
+                          <span className="px-2 py-0.5 rounded-md bg-[#B84B3E] text-white font-bold text-[10px] shadow-sm">
+                            HABIS
+                          </span>
+                        ) : isLowStock ? (
+                          <span className="px-2 py-0.5 rounded-md bg-[#D4A017] text-white font-bold text-[10px] shadow-sm">
+                            Sisa {product.stock}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-md bg-[#3F7D4F] text-white font-medium text-[10px] shadow-sm">
+                            {product.stock} {product.unit}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     <div className="w-full aspect-square rounded-xl bg-[#FAF7F2] overflow-hidden mb-2.5 relative flex items-center justify-center border border-[#E8E2D8]">
-                      {product.image_path ? (
+                      {product.image_path && !failedImageIds[product.id!] ? (
                         <img
                           src={product.image_path}
                           alt={product.name}
+                          onError={() => setFailedImageIds(prev => ({ ...prev, [product.id!]: true }))}
                           className={`w-full h-full object-cover transition-transform duration-300 ${
                             isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'
                           }`}

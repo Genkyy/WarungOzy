@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { repository } from '../services/indexedDBRepository';
 import { MenuItem, StockMovement } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
+import { openFoodFactsService } from '../services/openFoodFactsService';
 import { StockAdjustModal } from '../components/StockAdjustModal';
 import {
   PackageCheck,
@@ -10,16 +11,19 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Filter
+  Filter,
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 
 export const StockReportPage: React.FC = () => {
-  const { products, fetchMasterData, setAddProductModalOpen } = usePOSStore();
+  const { products, fetchMasterData, setAddProductModalOpen, showToast } = usePOSStore();
   const lowStockThreshold = 5;
   const [activeSubTab, setActiveSubTab] = useState<'inventory' | 'movements'>('inventory');
   const [searchQuery, setSearchQuery] = useState('');
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [adjustingProduct, setAdjustingProduct] = useState<MenuItem | null>(null);
+  const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);
 
   // Fast Filter State for Summary Cards ('all' | 'low' | 'out')
   const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
@@ -38,6 +42,40 @@ export const StockReportPage: React.FC = () => {
     fetchMasterData();
     loadMovements();
   }, []);
+
+  const handleSyncOpenFoodFacts = async () => {
+    setIsSyncingPhotos(true);
+    showToast('Memulai auto-sync foto produk via Open Food Facts...', 'info');
+    let updatedCount = 0;
+    let notFoundCount = 0;
+
+    try {
+      for (const prod of products) {
+        if (prod.barcode && prod.barcode.trim()) {
+          const res = await openFoodFactsService.fetchByBarcode(prod.barcode);
+          if (res.success && res.imageUrl) {
+            await repository.updateMenuItem(prod.id!, { image_path: res.imageUrl });
+            updatedCount++;
+          } else {
+            notFoundCount++;
+          }
+        }
+      }
+
+      await fetchMasterData();
+      if (updatedCount > 0) {
+        showToast(`Berhasil memperbarui ${updatedCount} foto produk via Open Food Facts!`, 'success');
+      } else if (notFoundCount > 0) {
+        showToast(`Selesai diproses. ${notFoundCount} produk tidak ditemukan di Open Food Facts database.`, 'info');
+      } else {
+        showToast('Tidak ada produk ber-barcode yang dapat disinkronkan.', 'info');
+      }
+    } catch (err) {
+      showToast('Terjadi kesalahan saat sinkronisasi foto', 'error');
+    } finally {
+      setIsSyncingPhotos(false);
+    }
+  };
 
   // Reset pagination when search, filter, or tab changes
   useEffect(() => {
@@ -92,13 +130,29 @@ export const StockReportPage: React.FC = () => {
           <p className="text-xs text-[#8A8175]">Pantau sisa stok barang, peringatan stok menipis, dan riwayat mutasi</p>
         </div>
 
-        <button
-          onClick={() => setAddProductModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-sm transition-all active:scale-95 min-h-[44px]"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Tambah Produk Baru</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleSyncOpenFoodFacts}
+            disabled={isSyncingPhotos}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-[#FEF3C7] hover:bg-[#D97706] text-[#D97706] hover:text-white font-bold text-xs border border-[#D97706]/30 shadow-xs transition-all disabled:opacity-50 min-h-[44px]"
+            title="Cari & perbarui foto semua barang ber-barcode secara otomatis dari database Open Food Facts"
+          >
+            {isSyncingPhotos ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-[#D97706]" />
+            )}
+            <span>{isSyncingPhotos ? 'Sinkronisasi Foto...' : 'Auto-Sync Foto (Open Food Facts)'}</span>
+          </button>
+
+          <button
+            onClick={() => setAddProductModalOpen(true)}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-sm transition-all active:scale-95 min-h-[44px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Tambah Produk Baru</span>
+          </button>
+        </div>
       </div>
 
       {/* Clickable Fast Filter Summary Cards (desain.md 4.2) */}

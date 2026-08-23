@@ -163,7 +163,7 @@ export const ExpensesPage: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-[#B84B3E] hover:opacity-90 text-white font-bold text-xs shadow-sm transition-all min-h-[44px]"
+              className="w-full py-3 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-sm transition-all min-h-[44px]"
             >
               {isSubmitting ? 'Menyimpan...' : 'Simpan Pengeluaran'}
             </button>
