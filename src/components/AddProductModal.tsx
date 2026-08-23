@@ -24,8 +24,62 @@ export const AddProductModal: React.FC = () => {
   const [imagePath, setImagePath] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetchingOFF, setIsFetchingOFF] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   if (!isAddProductModalOpen) return null;
+
+  const handleGenerateBarcode = () => {
+    const newBarcode = openFoodFactsService.generateInternalBarcode();
+    setBarcode(newBarcode);
+    showToast('Barcode unik internal berhasil di-generate otomatis!', 'success');
+  };
+
+  const handleAutoSuggestPhoto = () => {
+    if (!name.trim()) {
+      showToast('Ketik Nama Produk terlebih dahulu!', 'error');
+      return;
+    }
+    const suggestedUrl = openFoodFactsService.suggestPhotoByName(name);
+    setImagePath(suggestedUrl);
+    if (!barcode.trim()) {
+      const newBarcode = openFoodFactsService.generateInternalBarcode();
+      setBarcode(newBarcode);
+    }
+    showToast('Foto HD & Barcode unik berhasil diisikan!', 'success');
+  };
+
+  const handleSearchByName = async () => {
+    if (!name.trim()) {
+      showToast('Masukkan Nama Produk terlebih dahulu untuk mencari!', 'error');
+      return;
+    }
+
+    setIsFetchingOFF(true);
+    setSearchResults([]);
+    try {
+      const results = await openFoodFactsService.searchByName(name);
+      if (results && results.length > 0) {
+        setSearchResults(results);
+        showToast(`Ditemukan ${results.length} varian pabrik di database (Food/Beauty/Products)!`, 'success');
+      } else {
+        // Fallback to auto-suggest photo & barcode
+        handleAutoSuggestPhoto();
+        showToast('Produk tidak ditemukan di DB pabrik. Foto HD & Barcode Unik diisikan otomatis!', 'info');
+      }
+    } catch (err) {
+      showToast('Gagal mencari via nama produk', 'error');
+    } finally {
+      setIsFetchingOFF(false);
+    }
+  };
+
+  const handleSelectCandidate = (candidate: any) => {
+    if (candidate.name) setName(candidate.name);
+    if (candidate.barcode) setBarcode(candidate.barcode);
+    if (candidate.imageUrl) setImagePath(candidate.imageUrl);
+    setSearchResults([]);
+    showToast(`Barcode Pabrik (${candidate.barcode}) & foto berhasil diisikan (${candidate.source || 'Public DB'})!`, 'success');
+  };
 
   const handleFetchOpenFoodFacts = async () => {
     if (!barcode.trim()) {
@@ -61,6 +115,8 @@ export const AddProductModal: React.FC = () => {
       return;
     }
 
+    const finalBarcode = barcode.trim() || openFoodFactsService.generateInternalBarcode();
+
     setIsSubmitting(true);
     try {
       await repository.createMenuItem({
@@ -68,7 +124,7 @@ export const AddProductModal: React.FC = () => {
         category_id: categoryId,
         price: parseFloat(price) || 0,
         cost_price: parseFloat(costPrice) || 0,
-        barcode: barcode.trim(),
+        barcode: finalBarcode,
         stock: parseInt(stock) || 0,
         unit: unit,
         description: description.trim(),
@@ -116,15 +172,71 @@ export const AddProductModal: React.FC = () => {
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto max-h-[75vh] bg-white">
           <div>
-            <label className="block text-xs font-semibold text-[#2A2622] mb-1">Nama Produk / Barang *</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-[#2A2622]">Nama Produk / Barang *</label>
+              <button
+                type="button"
+                onClick={handleSearchByName}
+                disabled={isFetchingOFF || !name.trim()}
+                className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                title="Cari foto & barcode dari database Open Food Facts berdasarkan Nama Barang"
+              >
+                {isFetchingOFF ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                <span>Cari Data via Nama</span>
+              </button>
+            </div>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Misal: Indomie Goreng Spesial 85g"
+              placeholder="Misal: Autan Lotion 50g atau Indomie Goreng 85g"
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
             />
+
+            {/* Candidate Search Results Panel */}
+            {searchResults.length > 0 && (
+              <div className="mt-2 p-2 bg-[#FAF7F2] border border-[#D97706]/30 rounded-xl space-y-2 max-h-48 overflow-y-auto shadow-sm">
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[11px] font-bold text-[#D97706]">
+                    Varian Barcode Pabrik Ditemukan ({searchResults.length}):
+                  </p>
+                  <button type="button" onClick={() => setSearchResults([])} className="text-[#8A8175] hover:text-[#2A2622] text-[10px] font-bold">
+                    Tutup
+                  </button>
+                </div>
+                {searchResults.map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSelectCandidate(item)}
+                    className="w-full text-left p-2 rounded-lg bg-white border border-[#E8E2D8] hover:border-[#D97706] hover:bg-[#FEF3C7]/40 transition-all flex items-center gap-2.5"
+                  >
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="w-10 h-10 object-cover rounded-lg border border-[#E8E2D8] shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-[#FEF3C7] flex items-center justify-center text-[#D97706] font-bold text-xs shrink-0">
+                        OFF
+                      </div>
+                    )}
+                    <div className="overflow-hidden flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-[#2A2622] truncate">{item.name}</p>
+                        {item.source && (
+                          <span className="px-1.5 py-0.2 bg-[#FEF3C7] text-[#D97706] border border-[#D97706]/30 text-[9px] font-bold rounded shrink-0">
+                            {item.source}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[#D97706] font-mono font-bold mt-0.5">Barcode Pabrik: {item.barcode}</p>
+                    </div>
+                    <span className="px-2 py-1 bg-[#D97706] text-white text-[10px] font-bold rounded-lg shrink-0 shadow-xs">
+                      Pilih Barcode
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -182,38 +294,45 @@ export const AddProductModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Barcode Field with Open Food Facts Auto-Lookup Button */}
+          {/* Barcode Field with Auto-Generate & Open Food Facts Lookup Buttons */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold text-[#2A2622]">Barcode Pabrik</label>
-              <button
-                type="button"
-                onClick={handleFetchOpenFoodFacts}
-                disabled={isFetchingOFF || !barcode.trim()}
-                className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
-                title="Cari Foto & Nama Produk Otomatis dari Database Open Food Facts"
-              >
-                {isFetchingOFF ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
-                <span>Auto-Fetch Open Food Facts</span>
-              </button>
+            <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
+              <label className="block text-xs font-semibold text-[#2A2622]">Barcode Pabrik / Kode Unik</label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={handleGenerateBarcode}
+                  className="text-[11px] font-bold text-[#059669] bg-[#E6F4EA] hover:bg-[#059669] hover:text-white px-2 py-0.5 rounded-lg border border-[#059669]/30 flex items-center gap-1 transition-all"
+                  title="Generate Barcode 13 Digit Unik secara otomatis (Tidak perlu scan)"
+                >
+                  <Sparkles className="w-3 h-3 text-[#059669]" />
+                  <span>🎲 Generate Barcode</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFetchOpenFoodFacts}
+                  disabled={isFetchingOFF || !barcode.trim()}
+                  className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                  title="Cari Foto & Nama Produk dari Barcode"
+                >
+                  {isFetchingOFF ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                  <span>Cari via Barcode</span>
+                </button>
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
               <input
                 type="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                placeholder="8992388213148"
+                placeholder="Kosongkan untuk auto-generate (200...)"
                 className="col-span-2 bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
               />
               <input
                 type="number"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                placeholder="Stok Awal (10)"
+                placeholder="Stok (10)"
                 className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
               />
             </div>
