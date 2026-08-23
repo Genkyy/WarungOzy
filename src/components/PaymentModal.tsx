@@ -101,31 +101,31 @@ export const PaymentModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn select-none">
-      <div className="bg-[#151c2c] border border-[#232d42] rounded-t-3xl sm:rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+      <div className="bg-white border border-[#E8E2D8] rounded-t-2xl sm:rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh]">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-[#232d42] flex items-center justify-between bg-[#0f172a]">
+        <div className="p-4 sm:p-5 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
           <div>
-            <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-              <Banknote className="w-5 h-5 text-cyan-400" />
-              Pembayaran & Settlement
+            <h2 className="text-base sm:text-lg font-bold text-[#2A2622] flex items-center gap-2">
+              <Banknote className="w-5 h-5 text-[#D97706]" />
+              Pembayaran & Settlement Transaksi
             </h2>
-            <p className="text-xs text-slate-400">Total Tagihan: <span className="text-cyan-400 font-bold font-mono">Rp {totalAmount.toLocaleString('id-ID')}</span></p>
+            <p className="text-xs text-[#8A8175]">Total Tagihan: <span className="text-[#D97706] font-bold">Rp {totalAmount.toLocaleString('id-ID')}</span></p>
           </div>
           <button
             onClick={() => setPaymentModalOpen(false)}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#232d42] transition-all"
+            className="p-2 rounded-xl text-[#8A8175] hover:text-[#2A2622] bg-white border border-[#E8E2D8] transition-all"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1">
-          {/* Payment Method Selector (Strictly 3 methods: Cash, QRIS, E-Wallet) */}
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto flex-1 bg-white">
+          {/* Payment Method Selector */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2.5">
-              Pilih Metode Pembayaran
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#8A8175] mb-2.5">
+              Metode Pembayaran
             </label>
             <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
               {[
@@ -147,12 +147,12 @@ export const PaymentModal: React.FC = () => {
                     }}
                     className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-center transition-all min-h-[68px] ${
                       isSelected
-                        ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-md shadow-cyan-500/10 font-bold ring-1 ring-cyan-400'
-                        : 'bg-[#1e293b]/50 border-[#232d42] text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                        ? 'bg-[#FEF3C7] border-[#D97706] text-[#D97706] font-bold shadow-sm'
+                        : 'bg-[#FAF7F2] border-[#E8E2D8] text-[#8A8175] hover:text-[#2A2622]'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
-                    <span className="text-[11px]">{m.label}</span>
+                    <span className="text-xs">{m.label}</span>
                   </button>
                 );
               })}
@@ -161,23 +161,21 @@ export const PaymentModal: React.FC = () => {
 
           {/* Cash Payment Details */}
           {paymentMethod === 'cash' && (
-            <div className="space-y-3.5 bg-[#1e293b]/40 p-3.5 sm:p-4 rounded-xl border border-[#232d42]">
+            <div className="space-y-3.5 bg-[#FAF7F2] p-4 rounded-xl border border-[#E8E2D8]">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-[#2A2622] mb-1.5">
                   Nominal Uang Diserahkan (Rp)
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-sm">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#8A8175] font-bold text-sm">
                     Rp
                   </span>
                   <input
                     type="number"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
                     value={cashAmountInput}
                     onChange={(e) => setCashAmountInput(e.target.value)}
-                    placeholder="Masukkan nominal..."
-                    className="w-full bg-[#151c2c] border border-[#232d42] rounded-xl pl-10 pr-4 py-2.5 sm:py-3 text-base sm:text-lg font-bold text-white focus:outline-none focus:border-cyan-500 font-mono"
+                    placeholder="0"
+                    className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-10 pr-4 py-3 text-base sm:text-lg font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
                     autoFocus
                   />
                 </div>
@@ -185,12 +183,12 @@ export const PaymentModal: React.FC = () => {
 
               {/* Quick Cash Presets */}
               <div>
-                <label className="block text-[10px] sm:text-[11px] text-slate-400 mb-1.5 font-medium">Nominal Cepat:</label>
+                <label className="block text-[11px] text-[#8A8175] mb-1.5 font-medium">Nominal Cepat:</label>
                 <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   <button
                     type="button"
                     onClick={() => handleQuickCash(totalAmount)}
-                    className="px-3 py-2 bg-[#232d42] hover:bg-cyan-600 hover:text-white border border-slate-700 text-cyan-400 font-semibold text-xs rounded-xl transition-all min-h-[38px]"
+                    className="px-3 py-2 bg-[#D97706] text-white font-bold text-xs rounded-xl shadow-sm hover:bg-[#B45309] transition-all min-h-[38px]"
                   >
                     Uang Pas (Rp {totalAmount.toLocaleString('id-ID')})
                   </button>
@@ -199,7 +197,7 @@ export const PaymentModal: React.FC = () => {
                       key={preset}
                       type="button"
                       onClick={() => handleQuickCash(preset)}
-                      className="px-3 py-2 bg-[#151c2c] hover:bg-slate-700 border border-[#232d42] text-slate-300 font-medium text-xs rounded-xl transition-all font-mono min-h-[38px]"
+                      className="px-3 py-2 bg-white hover:bg-[#E8E2D8] border border-[#E8E2D8] text-[#2A2622] font-semibold text-xs rounded-xl transition-all min-h-[38px]"
                     >
                       Rp {preset.toLocaleString('id-ID')}
                     </button>
@@ -210,14 +208,14 @@ export const PaymentModal: React.FC = () => {
               {/* Kembalian Banner */}
               <div className={`p-3.5 rounded-xl border ${
                 isCashInsufficient
-                  ? 'bg-rose-950/30 border-rose-500/30 text-rose-400'
-                  : 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-[#FDF2F0] border-[#B84B3E]/30 text-[#B84B3E]'
+                  : 'bg-[#F0F7F2] border-[#3F7D4F]/30 text-[#3F7D4F]'
               }`}>
                 <div className="flex justify-between items-center">
                   <span className="text-xs uppercase font-bold tracking-wider">
                     {isCashInsufficient ? 'Kurang Bayar' : 'Uang Kembalian'}
                   </span>
-                  <span className="text-lg sm:text-xl font-black font-mono">
+                  <span className="text-lg sm:text-xl font-extrabold">
                     Rp {Math.abs(changeAmount).toLocaleString('id-ID')}
                   </span>
                 </div>
@@ -227,45 +225,44 @@ export const PaymentModal: React.FC = () => {
 
           {/* QRIS / E-Wallet Reference Input & Display */}
           {(paymentMethod === 'qris' || paymentMethod === 'ewallet') && (
-            <div className="space-y-3 bg-[#1e293b]/40 p-4 rounded-xl border border-[#232d42]">
+            <div className="space-y-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#E8E2D8]">
               {paymentMethod === 'qris' && (
-                <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-xl text-slate-900 text-center">
-                  <div className="w-36 h-36 bg-slate-100 border-2 border-slate-900 rounded-lg flex items-center justify-center p-1.5">
-                    <QrCode className="w-28 h-28 text-slate-900" />
+                <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-xl text-[#2A2622] text-center border border-[#E8E2D8]">
+                  <div className="w-36 h-36 bg-white border-2 border-[#2A2622] rounded-lg flex items-center justify-center p-1.5">
+                    <QrCode className="w-28 h-28 text-[#2A2622]" />
                   </div>
-                  <p className="mt-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">Scan QRIS Warung Ozy</p>
-                  <p className="text-[10px] text-slate-500">BCA, Mandiri, GoPay, OVO, DANA, ShopeePay</p>
+                  <p className="mt-2 text-xs font-bold uppercase tracking-wider text-[#2A2622]">Scan QRIS Warung Ozy</p>
+                  <p className="text-[10px] text-[#8A8175]">BCA, Mandiri, GoPay, OVO, DANA, ShopeePay</p>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                <label className="block text-xs font-semibold text-[#2A2622] mb-1.5">
                   Nomor Referensi Transaksi (Opsional)
                 </label>
                 <input
                   type="text"
-                  inputMode="numeric"
                   value={refNumber}
                   onChange={(e) => setRefNumber(e.target.value)}
                   placeholder="Misal: 9921408..."
-                  className="w-full bg-[#151c2c] border border-[#232d42] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+                  className="w-full bg-white border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
                 />
               </div>
             </div>
           )}
         </div>
 
-        {/* Footer Payment Action */}
-        <div className="p-4 border-t border-[#232d42] bg-[#0f172a] flex items-center justify-between gap-3">
+        {/* Footer Payment Action (Solid Amber Primary Button per desain.md 5.2) */}
+        <div className="p-4 border-t border-[#E8E2D8] bg-[#FAF7F2] flex items-center justify-between gap-3">
           <div>
-            <span className="text-[10px] text-slate-400 block font-medium">Total Akhir Tagihan</span>
-            <span className="text-base sm:text-lg font-black text-white font-mono">Rp {totalAmount.toLocaleString('id-ID')}</span>
+            <span className="text-[10px] text-[#8A8175] block font-medium">Total Akhir Tagihan</span>
+            <span className="text-base sm:text-lg font-black text-[#D97706]">Rp {totalAmount.toLocaleString('id-ID')}</span>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setPaymentModalOpen(false)}
-              className="px-3.5 py-2.5 rounded-xl border border-[#232d42] text-slate-400 hover:text-white font-medium text-xs transition-all min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl border border-[#E8E2D8] bg-white text-[#8A8175] hover:text-[#2A2622] font-semibold text-xs transition-all min-h-[44px]"
             >
               Batal
             </button>
@@ -273,10 +270,10 @@ export const PaymentModal: React.FC = () => {
               type="button"
               disabled={isSubmitting || isCashInsufficient}
               onClick={handleProcessPayment}
-              className="flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 min-h-[44px]"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs sm:text-sm shadow-md disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95 min-h-[44px]"
             >
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>{isSubmitting ? 'Memproses...' : 'Selesaikan'}</span>
+              <span>{isSubmitting ? 'Memproses...' : 'SELESAIKAN'}</span>
             </button>
           </div>
         </div>

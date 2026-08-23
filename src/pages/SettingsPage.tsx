@@ -36,10 +36,10 @@ export const SettingsPage: React.FC = () => {
 
   const handleResetSeedData = () => {
     showConfirm({
-      title: 'Reset Basis Data Pabrik (Seed Data)',
-      message: 'PERINGATAN: Seluruh data produk, riwayat nota penjualan, dan pengeluaran akan di-reset ulang ke data bawaan awal Warung Ozy. Tindakan ini tidak dapat dibatalkan.',
+      title: 'Reset Data Pabrik (Seed Data)',
+      message: 'PERINGATAN: Seluruh data produk, riwayat nota penjualan, dan pengeluaran akan di-reset ulang ke data sampel bawaan Warung Ozy. Tindakan ini tidak dapat dibatalkan.',
       type: 'danger',
-      confirmText: 'Ya, Reset Basis Data',
+      confirmText: 'Ya, Reset Data Toko',
       cancelText: 'Batal',
       onConfirm: async () => {
         try {
@@ -55,24 +55,26 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 bg-[#0b0f19] space-y-6 h-[calc(100vh-4rem)]">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-6 h-[calc(100vh-4rem)] pb-24 select-none">
       {/* Title Header */}
       <div>
-        <h1 className="text-xl font-bold text-white flex items-center gap-2">
-          <Settings className="w-5 h-5 text-cyan-400" />
+        <h1 className="text-lg sm:text-xl font-bold text-[#2A2622] flex items-center gap-2">
+          <Settings className="w-5 h-5 text-[#D97706]" />
           Pengaturan Toko & POS
         </h1>
-        <p className="text-xs text-slate-400">Konfigurasi nama toko/warung, tarif PPN, pesan struk, dan reset data</p>
+        <p className="text-xs text-[#8A8175]">Kelola info warung, batas stok menipis, footnote struk, dan reset data sampel</p>
       </div>
 
       <div className="max-w-2xl space-y-6">
-        {/* Settings Form */}
-        <form onSubmit={handleSaveSettings} className="glass-panel rounded-2xl p-6 border border-[#232d42] space-y-4">
-          <h2 className="text-sm font-bold text-white mb-2 pb-2 border-b border-[#232d42]">Informasi Outlet Warung</h2>
+        {/* Single-Column Grouped Form Layout (desain.md 5.5) */}
+        <form onSubmit={handleSaveSettings} className="paper-panel rounded-xl p-5 sm:p-6 border border-[#E8E2D8] space-y-5 shadow-sm bg-white">
+          <h2 className="text-sm font-bold text-[#2A2622] pb-2 border-b border-[#E8E2D8]">
+            Informasi Outlet Toko
+          </h2>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-              <Store className="w-4 h-4 text-cyan-400" />
+            <label className="block text-xs font-semibold text-[#2A2622] mb-1.5 flex items-center gap-1.5">
+              <Store className="w-4 h-4 text-[#D97706]" />
               Nama Toko / Outlet
             </label>
             <input
@@ -80,14 +82,14 @@ export const SettingsPage: React.FC = () => {
               required
               value={outletName}
               onChange={(e) => setOutletName(e.target.value)}
-              className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3.5 py-2.5 text-sm text-white font-semibold focus:outline-none focus:border-cyan-500"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] font-semibold focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <Percent className="w-4 h-4 text-cyan-400" />
+              <label className="block text-xs font-semibold text-[#2A2622] mb-1.5 flex items-center gap-1.5">
+                <Percent className="w-4 h-4 text-[#D97706]" />
                 Tarif Pajak PPN (%)
               </label>
               <input
@@ -95,14 +97,14 @@ export const SettingsPage: React.FC = () => {
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
                 placeholder="0"
-                className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
               />
-              <p className="text-[10px] text-slate-500 mt-1">Default 0% untuk toko kelontong / warung eceran</p>
+              <p className="text-[10px] text-[#8A8175] mt-1">Isi 0% untuk warung kelontong / retail biasa</p>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
+              <label className="block text-xs font-semibold text-[#2A2622] mb-1.5 flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 text-[#D4A017]" />
                 Batas Minimum Stok Menipis
               </label>
               <input
@@ -110,52 +112,53 @@ export const SettingsPage: React.FC = () => {
                 value={lowStockThreshold}
                 onChange={(e) => setLowStockThreshold(e.target.value)}
                 placeholder="5"
-                className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-              <FileText className="w-4 h-4 text-cyan-400" />
-              Pesan Footnote Struk Pembelian
+            <label className="block text-xs font-semibold text-[#2A2622] mb-1.5 flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-[#D97706]" />
+              Footnote Struk Pembelian
             </label>
             <input
               type="text"
               value={receiptFooter}
               onChange={(e) => setReceiptFooter(e.target.value)}
-              className="w-full bg-[#0b0f19] border border-[#232d42] rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
           </div>
 
-          <div className="pt-4 border-t border-[#232d42] flex justify-end">
+          {/* Solid Amber Sticky Save Button (desain.md 5.5) */}
+          <div className="pt-4 border-t border-[#E8E2D8] flex justify-end">
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-md shadow-cyan-500/20"
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-sm transition-all min-h-[44px]"
             >
               <Save className="w-4 h-4" />
-              <span>{isSaving ? 'Menyimpan...' : 'Simpan Pengaturan'}</span>
+              <span>{isSaving ? 'Menyimpan...' : 'Simpan Perubahan Pengaturan'}</span>
             </button>
           </div>
         </form>
 
-        {/* Database Management & Seed Reset */}
-        <div className="glass-panel rounded-2xl p-6 border border-rose-900/30 bg-rose-950/10 space-y-3">
-          <h2 className="text-sm font-bold text-rose-400 flex items-center gap-2">
+        {/* Reset Seed Data Panel */}
+        <div className="paper-panel rounded-xl p-5 sm:p-6 border border-[#B84B3E]/30 bg-white space-y-3 shadow-sm">
+          <h2 className="text-sm font-bold text-[#B84B3E] flex items-center gap-2">
             <RotateCcw className="w-4 h-4" />
             Reset Data Bawaan Pabrik (Seed Data)
           </h2>
-          <p className="text-xs text-slate-400">
-            Mengisi ulang basis data IndexedDB iPad dengan data sampel produk warung Indonesia (Aqua, Indomie, Teh Botol, Beras, Minyak, dll).
+          <p className="text-xs text-[#8A8175]">
+            Mengisi ulang basis data IndexedDB lokal dengan sampel produk asli warung kelontong Indonesia (Indomie, Aqua, Teh Botol, Beras, Minyak, dll).
           </p>
 
           <button
             onClick={handleResetSeedData}
-            className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center gap-2 transition-all"
+            className="px-4 py-2.5 rounded-xl bg-[#FDF2F0] hover:bg-[#B84B3E] text-[#B84B3E] hover:text-white border border-[#B84B3E]/30 font-bold text-xs flex items-center gap-2 transition-all min-h-[42px]"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Reset ke Seed Data Bawaan</span>
+            <span>Reset Data Toko</span>
           </button>
         </div>
       </div>

@@ -23,17 +23,13 @@ export const OrdersPage: React.FC = () => {
     items: OrderItem[];
     payment?: Payment;
   } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   const loadOrders = async () => {
-    setIsLoading(true);
     try {
       const data = await repository.getOrders();
       setOrders(data);
     } catch (err) {
       console.error('Failed to load orders history:', err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -85,34 +81,34 @@ export const OrdersPage: React.FC = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 bg-[#0b0f19] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6 select-none">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6 select-none">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-cyan-400" />
+          <h1 className="text-lg sm:text-xl font-bold text-[#2A2622] flex items-center gap-2">
+            <Receipt className="w-5 h-5 text-[#D97706]" />
             Riwayat Nota & Transaksi
           </h1>
-          <p className="text-xs text-slate-400">Daftar seluruh nota penjualan, pembatalan (void), dan cetak ulang struk</p>
+          <p className="text-xs text-[#8A8175]">Daftar seluruh nota penjualan, pembatalan (void), dan cetak ulang struk</p>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#8A8175] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari no. nota / pelanggan..."
-            className="w-full bg-[#151c2c] border border-[#232d42] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+            className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-9 pr-4 py-2 text-xs text-[#2A2622] placeholder-[#8A8175] focus:outline-none focus:border-[#D97706]"
           />
         </div>
       </div>
 
-      {/* 1. MOBILE VIEW (< 768px): Responsive Order Cards */}
+      {/* MOBILE VIEW (< 768px): Cards */}
       <div className="block md:hidden space-y-3">
         {filteredOrders.length === 0 ? (
-          <div className="glass-panel p-8 rounded-2xl border border-[#232d42] text-center text-slate-500 text-xs">
+          <div className="paper-panel p-8 rounded-xl border border-[#E8E2D8] text-center text-[#8A8175] text-xs">
             Tidak ada riwayat transaksi ditemukan
           </div>
         ) : (
@@ -121,41 +117,38 @@ export const OrdersPage: React.FC = () => {
             return (
               <div
                 key={order.id}
-                className="bg-[#151c2c] border border-[#232d42] rounded-2xl p-4 space-y-3 shadow-lg"
+                className="bg-white border border-[#E8E2D8] rounded-xl p-4 space-y-3 shadow-sm"
               >
-                {/* Header Row: Order Number & Status */}
-                <div className="flex items-center justify-between pb-2 border-b border-[#232d42]">
-                  <span className="font-mono font-extrabold text-xs text-cyan-400">
+                <div className="flex items-center justify-between pb-2 border-b border-[#E8E2D8]">
+                  <span className="font-bold text-xs text-[#D97706]">
                     {order.order_number}
                   </span>
                   {isCancelled ? (
-                    <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-[10px]">
+                    <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white font-bold text-[10px]">
                       Void / Batal
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
+                    <span className="px-2 py-0.5 rounded-[6px] bg-[#3F7D4F] text-white font-bold text-[10px]">
                       Selesai
                     </span>
                   )}
                 </div>
 
-                {/* Details Row: Customer Name & Date */}
                 <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-300 font-medium">
-                    <User className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="flex items-center gap-1.5 text-[#2A2622] font-semibold">
+                    <User className="w-3.5 h-3.5 text-[#8A8175]" />
                     <span>{order.customer_name || 'Pelanggan Umum'}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-400 text-[11px]">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                  <div className="flex items-center gap-1.5 text-[#8A8175] text-[11px]">
+                    <Calendar className="w-3.5 h-3.5 text-[#8A8175]" />
                     <span>{new Date(order.created_at).toLocaleString('id-ID')}</span>
                   </div>
                 </div>
 
-                {/* Total & Action Row */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#232d42]/60">
+                <div className="flex items-center justify-between pt-2 border-t border-[#E8E2D8]">
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Total Tagihan</span>
-                    <span className="font-extrabold text-sm text-white font-mono">
+                    <span className="text-[10px] text-[#8A8175] block font-medium">Total Tagihan</span>
+                    <span className="font-bold text-sm text-[#2A2622]">
                       Rp {order.total_amount.toLocaleString('id-ID')}
                     </span>
                   </div>
@@ -163,16 +156,16 @@ export const OrdersPage: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleViewDetails(order.id!)}
-                      className="px-3 py-2 rounded-xl bg-[#0b0f19] hover:bg-[#232d42] border border-[#232d42] text-slate-300 text-xs font-semibold flex items-center gap-1 transition-all active:scale-95"
+                      className="px-3 py-2 rounded-xl bg-[#FAF7F2] hover:bg-[#E8E2D8] border border-[#E8E2D8] text-[#2A2622] text-xs font-semibold flex items-center gap-1 transition-all"
                     >
-                      <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                      <Eye className="w-3.5 h-3.5 text-[#D97706]" />
                       <span>Detail</span>
                     </button>
 
                     {!isCancelled && (
                       <button
                         onClick={() => handleReprintReceipt(order)}
-                        className="px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-bold flex items-center gap-1 transition-all active:scale-95"
+                        className="px-3 py-2 rounded-xl bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white border border-[#D97706]/30 text-[#D97706] text-xs font-bold flex items-center gap-1 transition-all"
                       >
                         <Printer className="w-3.5 h-3.5" />
                         <span>Cetak</span>
@@ -186,11 +179,11 @@ export const OrdersPage: React.FC = () => {
         )}
       </div>
 
-      {/* 2. TABLET & DESKTOP VIEW (>= 768px): Full HTML Table */}
-      <div className="hidden md:block glass-panel rounded-2xl border border-[#232d42] overflow-hidden shadow-xl">
+      {/* TABLET & DESKTOP VIEW (>= 768px): Full Table */}
+      <div className="hidden md:block paper-panel rounded-xl border border-[#E8E2D8] overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#151c2c] text-slate-400 font-semibold border-b border-[#232d42]">
+            <thead className="bg-[#FAF7F2] text-[#8A8175] font-bold border-b border-[#E8E2D8]">
               <tr>
                 <th className="p-4">No. Struk Nota</th>
                 <th className="p-4">Nama Pelanggan</th>
@@ -200,10 +193,10 @@ export const OrdersPage: React.FC = () => {
                 <th className="p-4 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#232d42]/60 text-slate-300">
+            <tbody className="divide-y divide-[#E8E2D8] text-[#2A2622]">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-[#8A8175]">
                     Tidak ada riwayat transaksi ditemukan
                   </td>
                 </tr>
@@ -211,22 +204,22 @@ export const OrdersPage: React.FC = () => {
                 filteredOrders.map((order) => {
                   const isCancelled = order.status === 'cancelled';
                   return (
-                    <tr key={order.id} className="hover:bg-[#151c2c]/50 transition-all">
-                      <td className="p-4 font-mono font-bold text-cyan-400">{order.order_number}</td>
-                      <td className="p-4 font-medium text-white">{order.customer_name || 'Pelanggan Umum'}</td>
-                      <td className="p-4 text-slate-400">
+                    <tr key={order.id} className="hover:bg-[#FAF7F2] transition-all">
+                      <td className="p-4 font-bold text-[#D97706]">{order.order_number}</td>
+                      <td className="p-4 font-semibold text-[#2A2622]">{order.customer_name || 'Pelanggan Umum'}</td>
+                      <td className="p-4 text-[#8A8175]">
                         {new Date(order.created_at).toLocaleString('id-ID')}
                       </td>
-                      <td className="p-4 font-extrabold text-white">
+                      <td className="p-4 font-bold text-[#2A2622]">
                         Rp {order.total_amount.toLocaleString('id-ID')}
                       </td>
                       <td className="p-4">
                         {isCancelled ? (
-                          <span className="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold text-[10px]">
+                          <span className="px-2.5 py-1 rounded-[6px] bg-[#B84B3E] text-white font-bold text-[10px]">
                             Dibatalkan (Void)
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold text-[10px]">
+                          <span className="px-2.5 py-1 rounded-[6px] bg-[#3F7D4F] text-white font-bold text-[10px]">
                             Selesai
                           </span>
                         )}
@@ -234,15 +227,15 @@ export const OrdersPage: React.FC = () => {
                       <td className="p-4 text-right space-x-2">
                         <button
                           onClick={() => handleViewDetails(order.id!)}
-                          className="px-3 py-1.5 rounded-lg bg-[#151c2c] hover:bg-slate-700 border border-[#232d42] text-slate-300 text-[11px] font-medium transition-all"
+                          className="px-3 py-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#E8E2D8] border border-[#E8E2D8] text-[#2A2622] text-[11px] font-medium transition-all"
                         >
-                          <Eye className="w-3.5 h-3.5 inline mr-1" />
+                          <Eye className="w-3.5 h-3.5 inline mr-1 text-[#D97706]" />
                           Detail
                         </button>
                         {!isCancelled && (
                           <button
                             onClick={() => handleReprintReceipt(order)}
-                            className="px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-[11px] font-medium transition-all"
+                            className="px-3 py-1.5 rounded-lg bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white border border-[#D97706]/30 text-[#D97706] text-[11px] font-bold transition-all"
                           >
                             <Printer className="w-3.5 h-3.5 inline mr-1" />
                             Cetak
@@ -260,70 +253,70 @@ export const OrdersPage: React.FC = () => {
 
       {/* View Order Detail Modal */}
       {selectedOrderDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#151c2c] border border-[#232d42] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
-            <div className="p-4 border-b border-[#232d42] flex items-center justify-between bg-[#0f172a]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white border border-[#E8E2D8] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
               <div>
-                <h3 className="font-bold text-sm text-white">Detail Transaksi {selectedOrderDetails.order.order_number}</h3>
-                <p className="text-xs text-slate-400">{new Date(selectedOrderDetails.order.created_at).toLocaleString('id-ID')}</p>
+                <h3 className="font-bold text-sm text-[#2A2622]">Detail Transaksi {selectedOrderDetails.order.order_number}</h3>
+                <p className="text-xs text-[#8A8175]">{new Date(selectedOrderDetails.order.created_at).toLocaleString('id-ID')}</p>
               </div>
               <button
                 onClick={() => setSelectedOrderDetails(null)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-[#232d42]"
+                className="p-1.5 rounded-xl text-[#8A8175] hover:text-[#2A2622] bg-white border border-[#E8E2D8]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto max-h-[70vh] bg-[#0b0f19]">
-              <div className="space-y-2 border-b border-[#232d42] pb-3">
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[70vh] bg-white">
+              <div className="space-y-2 border-b border-[#E8E2D8] pb-3">
                 {selectedOrderDetails.items.map((item, i) => (
                   <div key={i} className="flex justify-between items-center text-xs">
                     <div>
-                      <p className="font-semibold text-white">{item.product_name}</p>
-                      <p className="text-[11px] text-slate-400">{item.quantity} x Rp {item.unit_price.toLocaleString('id-ID')}</p>
+                      <p className="font-semibold text-[#2A2622]">{item.product_name}</p>
+                      <p className="text-[11px] text-[#8A8175]">{item.quantity} x Rp {item.unit_price.toLocaleString('id-ID')}</p>
                     </div>
-                    <span className="font-bold text-cyan-400">Rp {item.subtotal.toLocaleString('id-ID')}</span>
+                    <span className="font-bold text-[#D97706]">Rp {item.subtotal.toLocaleString('id-ID')}</span>
                   </div>
                 ))}
               </div>
 
               <div className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between text-[#8A8175]">
                   <span>Subtotal:</span>
-                  <span>Rp {selectedOrderDetails.order.subtotal.toLocaleString('id-ID')}</span>
+                  <span className="font-semibold text-[#2A2622]">Rp {selectedOrderDetails.order.subtotal.toLocaleString('id-ID')}</span>
                 </div>
                 {selectedOrderDetails.order.discount_amount > 0 && (
-                  <div className="flex justify-between text-rose-400">
+                  <div className="flex justify-between text-[#B84B3E]">
                     <span>Diskon:</span>
-                    <span>-Rp {selectedOrderDetails.order.discount_amount.toLocaleString('id-ID')}</span>
+                    <span className="font-semibold">-Rp {selectedOrderDetails.order.discount_amount.toLocaleString('id-ID')}</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-sm text-white border-t border-[#232d42] pt-2">
+                <div className="flex justify-between font-bold text-sm text-[#2A2622] border-t border-[#E8E2D8] pt-2">
                   <span>TOTAL:</span>
-                  <span className="text-cyan-400">Rp {selectedOrderDetails.order.total_amount.toLocaleString('id-ID')}</span>
+                  <span className="text-[#D97706]">Rp {selectedOrderDetails.order.total_amount.toLocaleString('id-ID')}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 border-t border-[#232d42] bg-[#0f172a] flex justify-between items-center">
+            <div className="p-4 border-t border-[#E8E2D8] bg-[#FAF7F2] flex justify-between items-center">
               {selectedOrderDetails.order.status !== 'cancelled' ? (
                 <button
                   onClick={() => handleVoidOrder(selectedOrderDetails.order.id!)}
-                  className="px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-xl bg-[#FDF2F0] hover:bg-[#B84B3E] text-[#B84B3E] hover:text-white border border-[#B84B3E]/30 font-bold text-xs flex items-center gap-1.5 transition-all"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Batalkan Transaksi (Void)</span>
                 </button>
               ) : (
-                <span className="text-xs text-rose-400 font-bold flex items-center gap-1">
+                <span className="text-xs text-[#B84B3E] font-bold flex items-center gap-1">
                   <AlertTriangle className="w-4 h-4" /> Transaksi Dibatalkan
                 </span>
               )}
 
               <button
                 onClick={() => setSelectedOrderDetails(null)}
-                className="px-4 py-2.5 rounded-xl border border-[#232d42] text-slate-400 hover:text-white text-xs font-medium"
+                className="px-4 py-2.5 rounded-xl border border-[#E8E2D8] bg-white text-[#8A8175] hover:text-[#2A2622] text-xs font-semibold"
               >
                 Tutup
               </button>

@@ -28,18 +28,23 @@ export const Sidebar: React.FC = () => {
     <>
       {/* 1. IPAD 10 & DESKTOP: Responsive Vertical Sidebar */}
       {/* Compact w-20 on iPad Portrait (< 1024px), Full w-64 on iPad Landscape / Desktop (>= 1024px) */}
-      <aside className="hidden ipad:flex w-20 lg:w-64 bg-[#0f172a]/95 border-r border-[#232d42] flex-col justify-between h-screen select-none z-20 shrink-0 transition-all duration-300">
+      <aside className="hidden ipad:flex w-20 lg:w-64 bg-white border-r border-[#E8E2D8] flex-col justify-between h-screen select-none z-20 shrink-0 transition-all duration-300">
         {/* Brand Header */}
         <div>
-          <div className="h-16 flex items-center px-3 lg:px-4 gap-3 border-b border-[#232d42] justify-center lg:justify-start">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 shrink-0">
-              <Store className="w-5 h-5" />
+          <div className="h-16 flex items-center px-3 lg:px-4 gap-3 border-b border-[#E8E2D8] justify-center lg:justify-start">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D97706] to-[#B45309] flex items-center justify-center text-white shadow-md shadow-[#D97706]/20 shrink-0">
+              <Store className="w-5 h-5 text-white" />
             </div>
             <div className="overflow-hidden hidden lg:block">
-              <h1 className="font-extrabold text-sm text-white tracking-wide truncate">
-                {settings.outlet_name}
-              </h1>
-              <p className="text-xs text-cyan-400 font-medium">POS iPad & Mobile</p>
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-bold text-sm text-[#2A2622] tracking-tight truncate">
+                  Warung Ozy
+                </h1>
+                <span className="px-1.5 py-0.2 bg-[#FEF3C7] text-[#D97706] border border-[#D97706]/30 text-[9px] font-bold rounded">
+                  POS
+                </span>
+              </div>
+              <p className="text-[11px] text-[#8A8175] font-medium">KasirKu POS System</p>
             </div>
           </div>
 
@@ -53,14 +58,13 @@ export const Sidebar: React.FC = () => {
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   title={item.label}
-                  className={`w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200 min-h-[48px] ${
-                    isActive
-                      ? 'bg-gradient-to-r from-cyan-500/20 to-blue-600/10 text-cyan-400 border border-cyan-500/30 shadow-md shadow-cyan-500/10 font-bold'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-[#1a2234]'
-                  }`}
+                  className={`w-full flex items-center justify-center lg:justify-start gap-3 px-3 py-3 rounded-xl font-medium text-sm transition-all duration-200 min-h-[48px] ${isActive
+                      ? 'bg-[#FEF3C7] text-[#D97706] border border-[#D97706]/30 shadow-md shadow-[#D97706]/10 font-bold'
+                      : 'text-slate-400 hover:text-slate-800 hover:bg-slate-50'
+                    }`}
                 >
                   <div className="relative shrink-0">
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-[#D97706]' : 'text-slate-400'}`} />
                     {item.badge && (
                       <span className="absolute -top-2 -right-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow">
                         {item.badge}
@@ -75,12 +79,12 @@ export const Sidebar: React.FC = () => {
         </div>
 
         {/* Footer System Info */}
-        <div className="p-2 lg:p-3 border-t border-[#232d42]">
-          <div className="bg-[#151c2c] rounded-xl p-2 lg:p-3 border border-[#232d42]/60 text-xs text-center lg:text-left">
+        <div className="p-2 lg:p-3 border-t border-[#E8E2D8]">
+          <div className="bg-slate-50 rounded-xl p-2 lg:p-3 border border-[#E8E2D8]/60 text-xs text-center lg:text-left">
             <div className="flex items-center justify-center lg:justify-between text-slate-400 mb-0.5 lg:mb-1">
               <span className="hidden lg:inline">Status</span>
-              <span className="flex items-center gap-1.5 text-emerald-400 font-medium text-[11px]">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="flex items-center gap-1.5 text-emerald-600 font-medium text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span className="hidden lg:inline">Offline Ready</span>
               </span>
             </div>
@@ -90,7 +94,7 @@ export const Sidebar: React.FC = () => {
       </aside>
 
       {/* 2. MOBILE PHONE: Bottom Navigation Bar (Visible on Mobile < 820px) */}
-      <div className="ipad:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0f172a]/95 backdrop-blur-lg border-t border-[#232d42] px-2 py-1.5 flex items-center justify-around select-none">
+      <div className="ipad:hidden fixed bottom-0 left-0 right-0 z-40 bg-white backdrop-blur-lg border-t border-[#E8E2D8] px-2 py-1.5 flex items-center justify-around select-none">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -98,12 +102,11 @@ export const Sidebar: React.FC = () => {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[54px] min-h-[48px] relative ${
-                isActive ? 'text-cyan-400 font-bold' : 'text-slate-400 hover:text-slate-200'
-              }`}
+              className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[54px] min-h-[48px] relative ${isActive ? 'text-[#D97706] font-bold' : 'text-slate-400 hover:text-slate-800'
+                }`}
             >
               <div className="relative">
-                <Icon className={`w-5 h-5 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-[#D97706]' : 'text-slate-400'}`} />
                 {item.badge && (
                   <span className="absolute -top-1.5 -right-2.5 bg-rose-500 text-white text-[9px] font-extrabold px-1 rounded-full min-w-[15px] text-center">
                     {item.badge}
@@ -112,7 +115,7 @@ export const Sidebar: React.FC = () => {
               </div>
               <span className="text-[10px] mt-0.5 truncate max-w-[60px]">{item.label}</span>
               {isActive && (
-                <span className="w-1 h-1 rounded-full bg-cyan-400 absolute bottom-0.5"></span>
+                <span className="w-1 h-1 rounded-full bg-[#D97706] absolute bottom-0.5"></span>
               )}
             </button>
           );

@@ -4,40 +4,60 @@
 
 @layer base {
   :root {
-    --bg-dark: #0b0f19;
-    --card-dark: #151c2c;
-    --border-dark: #232d42;
-    --neon-blue: #00d2ff;
-    --neon-emerald: #10b981;
+    --bg-paper: #FAF7F2;
+    --surface: #FFFFFF;
+    --border-paper: #E8E2D8;
+    --text-primary: #2A2622;
+    --text-muted: #8A8175;
+    --amber-primary: #D97706;
+    --amber-dark: #B45309;
+    --olive: #3F7D4F;
+    --mustard: #D4A017;
+    --brick: #B84B3E;
   }
 
   body {
-    background-color: var(--bg-dark);
-    color: #f1f5f9;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-paper);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
 }
 
-/* Custom Glassmorphism UI */
-.glass-panel {
-  background: rgba(21, 28, 44, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Paper Theme UI Components */
+.paper-panel {
+  background-color: #FFFFFF;
+  border: 1px solid #E8E2D8;
+  box-shadow: 0 1px 3px rgba(42, 38, 34, 0.04);
 }
 
-.glass-card {
-  background: rgba(26, 34, 52, 0.7);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  transition: all 0.2s ease-in-out;
+.paper-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E8E2D8;
+  box-shadow: 0 1px 3px rgba(42, 38, 34, 0.05);
+  transition: all 0.15s ease-in-out;
 }
 
-.glass-card:hover {
-  border-color: rgba(0, 210, 255, 0.3);
-  box-shadow: 0 8px 24px -6px rgba(0, 210, 255, 0.15);
+.paper-card:hover {
+  border-color: #D97706;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.1);
+}
+
+/* Scan Pulse Keyframe Animation */
+@keyframes scanFlash {
+  0% {
+    background-color: rgba(217, 119, 6, 0.2);
+    border-color: #D97706;
+  }
+  100% {
+    background-color: #FFFFFF;
+    border-color: #E8E2D8;
+  }
+}
+
+.scan-pulse {
+  animation: scanFlash 0.3s ease-out forwards;
 }
 
 /* Scrollbar customization */
@@ -47,16 +67,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: #FAF7F2;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #232d42;
+  background: #E8E2D8;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00d2ff;
+  background: #D97706;
 }
 
 /* Thermal Printer CSS Format (58mm / 80mm) */
@@ -65,7 +85,8 @@
     visibility: hidden;
   }
 
-  #thermal-receipt-printable, #thermal-receipt-printable * {
+  #thermal-receipt-printable,
+  #thermal-receipt-printable * {
     visibility: visible;
   }
 
@@ -73,13 +94,14 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 58mm;
+    width: 100%;
+    max-width: 58mm;
+    padding: 0;
     margin: 0;
-    padding: 2mm;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 10pt;
-    color: #000;
     background: #fff;
+    color: #000;
+    box-shadow: none;
+    border: none;
   }
 
   @page {

@@ -40,11 +40,11 @@ export const db = new WarungOzyDB();
 
 // 5 Exact Warung Categories Requested
 export const DEFAULT_CATEGORIES: Omit<Category, 'id'>[] = [
-  { name: 'Makanan', icon: '🍜', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Minuman', icon: '🥤', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Sembako', icon: '🌾', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Top Up', icon: '⚡', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Rokok', icon: '🚬', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Makanan', icon: 'Utensils', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Minuman', icon: 'Coffee', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Sembako', icon: 'Package', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Top Up', icon: 'Zap', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Rokok', icon: 'Flame', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
 ];
 
 const DEFAULT_PRODUCTS = (catIds: Record<string, number>): Omit<MenuItem, 'id'>[] => [

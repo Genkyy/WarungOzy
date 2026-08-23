@@ -8,31 +8,24 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#e6f9ff',
-          100: '#b3f0ff',
-          400: '#00d2ff',
-          500: '#00b8e6',
-          600: '#0099cc',
-          900: '#004d66',
+        paper: '#FAF7F2',
+        surface: '#FFFFFF',
+        'border-paper': '#E8E2D8',
+        ink: {
+          primary: '#2A2622',
+          muted: '#8A8175',
         },
-        dark: {
-          bg: '#0b0f19',
-          card: '#151c2c',
-          border: '#232d42',
-          hover: '#1e293b',
-          sidebar: '#0f172a',
+        amber: {
+          DEFAULT: '#D97706',
+          dark: '#B45309',
+          light: '#FEF3C7',
         },
-        neon: {
-          blue: '#00D2FF',
-          emerald: '#10B981',
-          amber: '#F59E0B',
-          rose: '#EF4444',
-          purple: '#8B5CF6'
-        }
+        olive: '#3F7D4F',
+        mustard: '#D4A017',
+        brick: '#B84B3E',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       screens: {
         'ipad': '820px',

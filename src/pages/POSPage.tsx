@@ -1,18 +1,19 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
+import { CategoryIcon } from '../components/CategoryIcon';
 import {
   ShoppingCart,
   Plus,
   Minus,
   Trash2,
   Tag,
-  User,
   ArrowRight,
-  Barcode,
-  ChevronUp,
-  ChevronRight,
+  User,
   ChevronLeft,
-  X
+  ChevronRight,
+  Barcode,
+  X,
+  ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -22,9 +23,8 @@ export const POSPage: React.FC = () => {
     categories,
     selectedCategoryId,
     setSelectedCategoryId,
-    searchQuery,
-    cart,
     addToCart,
+    cart,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -42,43 +42,31 @@ export const POSPage: React.FC = () => {
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
-  // Fetch master data on mount to guarantee fresh categories
   useEffect(() => {
     fetchMasterData();
   }, []);
 
-  // Display strictly 5 exact categories requested
-  const displayCategories = categories.length === 5 ? categories : [
+  const displayCategories = categories.length > 0 ? categories : [
     { id: 1, name: 'Makanan', icon: '🍜' },
     { id: 2, name: 'Minuman', icon: '🥤' },
     { id: 3, name: 'Sembako', icon: '🌾' },
     { id: 4, name: 'Top Up', icon: '⚡' },
-    { id: 5, name: 'Rokok', icon: '🚬' }
+    { id: 5, name: 'Rokok', icon: '🚬' },
   ];
 
-  // Horizontal scroll helpers for category bar
   const scrollCategories = (direction: 'left' | 'right') => {
     if (categoryScrollRef.current) {
-      const scrollAmount = direction === 'left' ? -180 : 180;
+      const scrollAmount = direction === 'left' ? -200 : 200;
       categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
 
-  // Filter products by Category & Search Query
   const filteredProducts = products.filter((p) => {
     const matchesCategory = selectedCategoryId === 0 || p.category_id === selectedCategoryId;
-    const q = searchQuery.toLowerCase().trim();
-    const matchesSearch =
-      !q ||
-      p.name.toLowerCase().includes(q) ||
-      (Boolean(p.barcode) && p.barcode!.includes(q)) ||
-      (Boolean(p.description) && p.description!.toLowerCase().includes(q));
-    return matchesCategory && matchesSearch;
+    return matchesCategory;
   });
 
-  // Cart Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
-
   const discountAmount =
     discountType === 'percent'
       ? Math.round((subtotal * discountValue) / 100)
@@ -87,143 +75,161 @@ export const POSPage: React.FC = () => {
   const taxableAmount = Math.max(0, subtotal - discountAmount);
   const taxAmount = Math.round((taxableAmount * taxRate) / 100);
   const totalAmount = taxableAmount + taxAmount;
-
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   const lowStockThreshold = parseInt(settings.low_stock_threshold, 10) || 5;
 
   return (
-    <div className="flex-1 flex flex-col ipad:flex-row overflow-hidden bg-[#0b0f19] h-[calc(100vh-4rem)] relative select-none">
+    <div className="flex-1 flex flex-col ipad:flex-row overflow-hidden bg-[#FAF7F2] h-[calc(100vh-4rem)] relative select-none">
       {/* LEFT SECTION: Catalog & Categories */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden p-2.5 sm:p-4 border-r border-[#232d42]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-4 border-r border-[#E8E2D8]">
         
-        {/* Category Pills Container with Clear Scroll Indicators */}
-        <div className="relative mb-3 shrink-0 w-full flex items-center bg-[#151c2c]/40 rounded-2xl p-1.5 border border-[#232d42]">
-          {/* Scroll Left Button */}
+        {/* Category Pills Bar */}
+        <div className="relative mb-3 shrink-0 w-full flex items-center bg-white rounded-xl p-1.5 border border-[#E8E2D8] shadow-sm">
           <button
             onClick={() => scrollCategories('left')}
-            className="p-1.5 rounded-lg bg-[#151c2c] text-slate-400 hover:text-cyan-400 border border-[#232d42] shrink-0 mr-1 hidden sm:flex items-center justify-center transition-all"
+            className="p-1.5 rounded-lg bg-[#FAF7F2] text-[#8A8175] hover:text-[#2A2622] border border-[#E8E2D8] shrink-0 mr-1 hidden sm:flex items-center justify-center transition-all"
             title="Scroll Kategori Kiri"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          {/* Scrollable Pills Container */}
           <div
             ref={categoryScrollRef}
-            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scroll-smooth touch-pan-x scrollbar-thin scrollbar-thumb-cyan-500/40 py-1 w-full"
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scroll-smooth touch-pan-x py-1 w-full"
           >
             <button
               onClick={() => setSelectedCategoryId(0)}
-              className={`px-3.5 py-2 rounded-xl font-bold text-xs transition-all whitespace-nowrap min-h-[40px] flex items-center gap-1.5 shrink-0 ${
+              className={`px-4 py-2 rounded-xl font-medium text-xs transition-all whitespace-nowrap min-h-[40px] flex items-center gap-2 shrink-0 ${
                 selectedCategoryId === 0
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20 ring-1 ring-cyan-400'
-                  : 'bg-[#151c2c] text-slate-300 hover:text-white border border-[#232d42]'
+                  ? 'bg-[#D97706] text-white shadow-sm font-bold'
+                  : 'bg-[#FAF7F2] text-[#8A8175] hover:text-[#2A2622] border border-[#E8E2D8]'
               }`}
             >
-              <span>Semua</span>
-              <span className="bg-black/40 px-2 py-0.5 rounded-md text-[10px] font-mono text-cyan-300">{products.length}</span>
+              <span>Semua Kategori</span>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono ${selectedCategoryId === 0 ? 'bg-black/20 text-white' : 'bg-[#E8E2D8] text-[#8A8175]'}`}>
+                {products.length}
+              </span>
             </button>
 
             {displayCategories.map((cat) => {
               const isSelected = selectedCategoryId === cat.id;
+              const catItemCount = products.filter(p => p.category_id === cat.id).length;
               return (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id!)}
-                  className={`px-3.5 py-2 rounded-xl font-semibold text-xs transition-all whitespace-nowrap min-h-[40px] flex items-center gap-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl font-medium text-xs transition-all whitespace-nowrap min-h-[40px] flex items-center gap-2 shrink-0 ${
                     isSelected
-                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20 font-bold ring-1 ring-cyan-400'
-                      : 'bg-[#151c2c] text-slate-300 hover:text-white border border-[#232d42]'
+                      ? 'bg-[#D97706] text-white shadow-sm font-bold'
+                      : 'bg-[#FAF7F2] text-[#8A8175] hover:text-[#2A2622] border border-[#E8E2D8]'
                   }`}
                 >
-                  <span className="text-sm">{cat.icon}</span>
+                  <CategoryIcon iconName={cat.icon} categoryName={cat.name} className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#D97706]'}`} />
                   <span>{cat.name}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${isSelected ? 'bg-black/20 text-white' : 'bg-[#E8E2D8] text-[#8A8175]'}`}>
+                    {catItemCount}
+                  </span>
                 </button>
               );
             })}
           </div>
 
-          {/* Scroll Right Button */}
           <button
             onClick={() => scrollCategories('right')}
-            className="p-1.5 rounded-lg bg-[#151c2c] text-slate-400 hover:text-cyan-400 border border-[#232d42] shrink-0 ml-1 hidden sm:flex items-center justify-center transition-all"
+            className="p-1.5 rounded-lg bg-[#FAF7F2] text-[#8A8175] hover:text-[#2A2622] border border-[#E8E2D8] shrink-0 ml-1 hidden sm:flex items-center justify-center transition-all"
             title="Scroll Kategori Kanan"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Product Cards Grid — Responsive columns for iPad & Mobile */}
+        {/* Product Cards Grid */}
         <div className="flex-1 overflow-y-auto pr-1 pb-28 ipad:pb-4">
           {filteredProducts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-slate-500">
-              <ShoppingCart className="w-12 h-12 mb-3 text-slate-600" />
-              <p className="text-sm font-medium text-slate-300">Tidak ada produk dalam kategori ini</p>
-              <p className="text-xs text-slate-500 mt-1">Coba pilih kategori lain atau kata kunci pencarian</p>
+            <div className="flex flex-col items-center justify-center h-64 text-[#8A8175]">
+              <ShoppingCart className="w-12 h-12 mb-3 text-[#E8E2D8]" />
+              <p className="text-sm font-medium text-[#2A2622]">Tidak ada produk dalam kategori ini</p>
+              <p className="text-xs text-[#8A8175] mt-1">Coba pilih kategori lain atau kata kunci pencarian</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3.5 align-start">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 align-start">
               {filteredProducts.map((product) => {
                 const isOutOfStock = product.stock <= 0;
                 const isLowStock = product.stock > 0 && product.stock <= lowStockThreshold;
 
+                const catObj = displayCategories.find(c => c.id === product.category_id);
+
                 return (
                   <motion.div
                     key={product.id}
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: isOutOfStock ? 1 : 0.97 }}
                     onClick={() => !isOutOfStock && addToCart(product)}
-                    className={`glass-card rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between cursor-pointer border relative overflow-hidden group ${
+                    className={`paper-card rounded-2xl p-3 flex flex-col justify-between cursor-pointer relative overflow-hidden group border ${
                       isOutOfStock
-                        ? 'opacity-50 grayscale cursor-not-allowed border-rose-900/30'
-                        : 'border-[#232d42]'
+                        ? 'opacity-70 bg-[#FAF7F2] border-[#E8E2D8] cursor-not-allowed'
+                        : 'bg-white hover:border-[#D97706]'
                     }`}
                   >
-                    {/* Stock Badge */}
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-2.5 right-2.5 z-20">
                       {isOutOfStock ? (
-                        <span className="px-1.5 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-rose-400 font-bold text-[9px] sm:text-[10px]">
-                          Habis
+                        <span className="px-2 py-0.5 rounded-md bg-[#B84B3E] text-white font-bold text-[10px] shadow-sm">
+                          HABIS
                         </span>
                       ) : isLowStock ? (
-                        <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-[9px] sm:text-[10px]">
-                          Stok {product.stock}
+                        <span className="px-2 py-0.5 rounded-md bg-[#D4A017] text-white font-bold text-[10px] shadow-sm">
+                          Sisa {product.stock}
                         </span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-medium text-[9px] sm:text-[10px]">
+                        <span className="px-2 py-0.5 rounded-md bg-[#3F7D4F] text-white font-medium text-[10px] shadow-sm">
                           {product.stock} {product.unit}
                         </span>
                       )}
                     </div>
 
-                    {/* Image Thumbnail */}
-                    <div className="w-full h-24 sm:h-28 rounded-xl bg-[#0b0f19] overflow-hidden mb-2 relative flex items-center justify-center shrink-0">
+                    <div className="w-full aspect-square rounded-xl bg-[#FAF7F2] overflow-hidden mb-2.5 relative flex items-center justify-center border border-[#E8E2D8]">
                       {product.image_path ? (
                         <img
                           src={product.image_path}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className={`w-full h-full object-cover transition-transform duration-300 ${
+                            isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'
+                          }`}
                         />
                       ) : (
-                        <ShoppingCart className="w-7 h-7 text-slate-600" />
+                        <div className="flex flex-col items-center justify-center text-center p-2">
+                          <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] border border-[#D97706]/30 flex items-center justify-center text-[#D97706] mb-1.5 shadow-sm">
+                            <CategoryIcon iconName={catObj?.icon} categoryName={catObj?.name} className="w-5 h-5 text-[#D97706]" />
+                          </div>
+                          <span className="text-[10px] text-[#8A8175] font-semibold">{product.unit}</span>
+                        </div>
                       )}
-                      {product.barcode && (
-                        <div className="absolute bottom-1 left-1 bg-black/70 backdrop-blur-sm text-slate-300 text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 font-mono">
-                          <Barcode className="w-3 h-3 text-cyan-400" />
-                          <span className="truncate max-w-[80px]">{product.barcode}</span>
+
+                      {isOutOfStock && (
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center z-10">
+                          <span className="px-3 py-1 bg-[#B84B3E] text-white font-black text-xs rounded-md shadow-md tracking-wider">
+                            HABIS
+                          </span>
+                        </div>
+                      )}
+
+                      {product.barcode && !isOutOfStock && (
+                        <div className="absolute bottom-1.5 left-1.5 bg-white/90 backdrop-blur-sm text-[#2A2622] text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1 font-mono border border-[#E8E2D8]">
+                          <Barcode className="w-3 h-3 text-[#D97706]" />
+                          <span className="truncate max-w-[70px]">{product.barcode}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Title & Price */}
                     <div className="space-y-1">
-                      <h3 className="font-semibold text-xs text-white line-clamp-2 leading-tight">
+                      <h3 className="font-semibold text-sm text-[#2A2622] line-clamp-2 leading-snug">
                         {product.name}
                       </h3>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="font-bold text-xs sm:text-sm text-cyan-400 font-mono">
+                      <div className="flex items-baseline justify-between pt-1">
+                        <span className="font-bold text-base text-[#D97706]">
                           Rp {product.price.toLocaleString('id-ID')}
                         </span>
-                        <span className="text-[9px] sm:text-[10px] text-slate-400 font-medium bg-[#151c2c] px-1 py-0.5 rounded border border-[#232d42]">
+                        <span className="text-xs text-[#8A8175] font-normal">
                           /{product.unit}
                         </span>
                       </div>
@@ -236,15 +242,15 @@ export const POSPage: React.FC = () => {
         </div>
       </div>
 
-      {/* RIGHT SECTION: Cart Drawer for iPad 10 & Desktop */}
-      <div className="hidden ipad:flex w-72 lg:w-80 xl:w-96 bg-[#0f172a] border-l border-[#232d42] flex-col justify-between h-full z-10 shadow-2xl shrink-0 overflow-hidden">
+      {/* RIGHT SECTION: Cart Drawer */}
+      <div className="hidden ipad:flex w-80 lg:w-96 bg-white border-l border-[#E8E2D8] flex-col justify-between h-full z-10 shadow-sm shrink-0 overflow-hidden">
         <CartContent
           cart={cart}
           customerName={customerName}
           setCustomerName={setCustomerName}
-          clearCart={clearCart}
-          removeFromCart={removeFromCart}
           updateQuantity={updateQuantity}
+          removeFromCart={removeFromCart}
+          clearCart={clearCart}
           discountValue={discountValue}
           discountType={discountType}
           setDiscount={setDiscount}
@@ -260,23 +266,23 @@ export const POSPage: React.FC = () => {
       {/* MOBILE PHONE: Floating Sticky Cart Bar */}
       {cart.length > 0 && (
         <div className="ipad:hidden fixed bottom-16 left-3 right-3 z-30">
-          <div className="bg-[#151c2c] border border-cyan-500/40 rounded-2xl p-2.5 shadow-2xl flex items-center justify-between gap-3 text-white backdrop-blur-xl">
+          <div className="bg-white border border-[#D97706] rounded-2xl p-3 shadow-xl flex items-center justify-between gap-3 text-[#2A2622]">
             <button
               onClick={() => setIsMobileCartOpen(true)}
-              className="flex items-center gap-2.5 flex-1 text-left"
+              className="flex items-center gap-3 flex-1 text-left"
             >
-              <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-xs relative">
+              <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#D97706] border border-[#D97706]/30 flex items-center justify-center font-bold text-xs relative">
                 <ShoppingCart className="w-5 h-5" />
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                <span className="absolute -top-1.5 -right-1.5 bg-[#B84B3E] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
                   {totalCartCount}
                 </span>
               </div>
               <div>
-                <p className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                <p className="text-[11px] text-[#8A8175] font-medium flex items-center gap-1">
                   <span>Lihat Keranjang</span>
-                  <ChevronUp className="w-3.5 h-3.5 text-cyan-400 animate-bounce" />
+                  <ChevronUp className="w-3.5 h-3.5 text-[#D97706] animate-bounce" />
                 </p>
-                <p className="text-sm font-extrabold text-white font-mono">
+                <p className="text-sm font-bold text-[#2A2622]">
                   Rp {totalAmount.toLocaleString('id-ID')}
                 </p>
               </div>
@@ -284,7 +290,7 @@ export const POSPage: React.FC = () => {
 
             <button
               onClick={() => setPaymentModalOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 active:scale-95"
+              className="px-5 py-2.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-md flex items-center gap-1.5 active:scale-95 min-h-[44px]"
             >
               <span>BAYAR</span>
               <ArrowRight className="w-4 h-4" />
@@ -296,22 +302,22 @@ export const POSPage: React.FC = () => {
       {/* MOBILE PHONE: Sliding Bottom Sheet Cart Drawer */}
       <AnimatePresence>
         {isMobileCartOpen && (
-          <div className="ipad:hidden fixed inset-0 z-50 flex flex-col justify-end bg-black/75 backdrop-blur-sm">
+          <div className="ipad:hidden fixed inset-0 z-50 flex flex-col justify-end bg-black/50 backdrop-blur-sm">
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
-              className="bg-[#0f172a] border-t border-[#232d42] rounded-t-3xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl"
+              className="bg-white border-t border-[#E8E2D8] rounded-t-2xl overflow-hidden max-h-[85vh] flex flex-col shadow-2xl"
             >
-              <div className="p-3.5 border-b border-[#232d42] flex items-center justify-between bg-[#151c2c]">
+              <div className="p-3.5 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-cyan-400" />
-                  <h2 className="font-bold text-sm text-white">Keranjang Belanja ({totalCartCount})</h2>
+                  <ShoppingCart className="w-5 h-5 text-[#D97706]" />
+                  <h2 className="font-bold text-sm text-[#2A2622]">Keranjang Belanja ({totalCartCount})</h2>
                 </div>
                 <button
                   onClick={() => setIsMobileCartOpen(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-white bg-[#232d42]"
+                  className="p-1.5 rounded-xl text-[#8A8175] hover:text-[#2A2622] bg-white border border-[#E8E2D8]"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -322,9 +328,9 @@ export const POSPage: React.FC = () => {
                   cart={cart}
                   customerName={customerName}
                   setCustomerName={setCustomerName}
-                  clearCart={clearCart}
-                  removeFromCart={removeFromCart}
                   updateQuantity={updateQuantity}
+                  removeFromCart={removeFromCart}
+                  clearCart={clearCart}
                   discountValue={discountValue}
                   discountType={discountType}
                   setDiscount={setDiscount}
@@ -347,14 +353,13 @@ export const POSPage: React.FC = () => {
   );
 };
 
-// Reusable Cart Drawer Content Component
 interface CartContentProps {
   cart: any[];
   customerName: string;
   setCustomerName: (name: string) => void;
-  clearCart: () => void;
-  removeFromCart: (id: number) => void;
   updateQuantity: (id: number, qty: number) => void;
+  removeFromCart: (id: number) => void;
+  clearCart: () => void;
   discountValue: number;
   discountType: 'nominal' | 'percent';
   setDiscount: (val: number, type: 'nominal' | 'percent') => void;
@@ -370,9 +375,9 @@ const CartContent: React.FC<CartContentProps> = ({
   cart,
   customerName,
   setCustomerName,
-  clearCart,
-  removeFromCart,
   updateQuantity,
+  removeFromCart,
+  clearCart,
   discountValue,
   discountType,
   setDiscount,
@@ -384,21 +389,20 @@ const CartContent: React.FC<CartContentProps> = ({
   onCheckout
 }) => {
   return (
-    <div className="flex flex-col justify-between h-full">
-      {/* Customer Input Row */}
-      <div className="p-3 border-b border-[#232d42] bg-[#0b0f19]/60 flex items-center gap-2 shrink-0">
-        <User className="w-4 h-4 text-slate-400 shrink-0" />
+    <div className="flex flex-col h-full bg-white select-none">
+      <div className="p-3 border-b border-[#E8E2D8] bg-[#FAF7F2] flex items-center gap-2 shrink-0">
+        <User className="w-4 h-4 text-[#8A8175] shrink-0" />
         <input
           type="text"
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
           placeholder="Nama Pelanggan..."
-          className="w-full bg-[#151c2c] border border-[#232d42] rounded-lg px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+          className="w-full bg-white border border-[#E8E2D8] rounded-lg px-3 py-1.5 text-xs text-[#2A2622] placeholder-[#8A8175] focus:outline-none focus:border-[#D97706]"
         />
         {cart.length > 0 && (
           <button
             onClick={clearCart}
-            className="text-xs text-rose-400 hover:text-rose-300 p-1 font-medium shrink-0"
+            className="text-xs text-[#B84B3E] hover:opacity-80 p-1 font-medium shrink-0"
             title="Kosongkan Keranjang"
           >
             <Trash2 className="w-4 h-4" />
@@ -406,58 +410,57 @@ const CartContent: React.FC<CartContentProps> = ({
         )}
       </div>
 
-      {/* Cart Items List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 max-h-[300px] ipad:max-h-none">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2.5 max-h-[320px] ipad:max-h-none">
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-500 text-center">
-            <ShoppingCart className="w-10 h-10 mb-2 text-slate-600" />
+          <div className="flex flex-col items-center justify-center py-12 text-[#8A8175] text-center">
+            <ShoppingCart className="w-10 h-10 mb-2 text-[#E8E2D8]" />
             <p className="text-xs font-semibold">Keranjang masih kosong</p>
+            <p className="text-[11px] text-[#8A8175] mt-0.5">Scan barcode atau tap produk untuk membeli</p>
           </div>
         ) : (
           cart.map((item) => (
             <div
               key={item.product.id}
-              className="bg-[#151c2c] border border-[#232d42] rounded-xl p-3 flex flex-col gap-2"
+              className="bg-white border border-[#E8E2D8] rounded-xl p-3 flex flex-col gap-2 shadow-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-xs text-white leading-snug">
+                  <h4 className="font-semibold text-xs text-[#2A2622] leading-snug">
                     {item.product.name}
                   </h4>
-                  <p className="text-[11px] text-cyan-400 font-bold font-mono">
+                  <p className="text-[11px] text-[#D97706] font-bold">
                     Rp {item.product.price.toLocaleString('id-ID')}{' '}
-                    <span className="text-[10px] text-slate-400 font-normal">/{item.product.unit}</span>
+                    <span className="text-[10px] text-[#8A8175] font-normal">/{item.product.unit}</span>
                   </p>
                 </div>
                 <button
                   onClick={() => removeFromCart(item.product.id!)}
-                  className="text-slate-500 hover:text-rose-400 p-1 transition-all"
+                  className="text-[#8A8175] hover:text-[#B84B3E] p-1 transition-all"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              {/* Quantity Stepper & Line Item Subtotal */}
-              <div className="flex items-center justify-between pt-1 border-t border-[#232d42]/60">
-                <div className="flex items-center gap-1.5 bg-[#0b0f19] rounded-lg p-1 border border-[#232d42]">
+              <div className="flex items-center justify-between pt-1 border-t border-[#E8E2D8]">
+                <div className="flex items-center gap-1.5 bg-[#FAF7F2] rounded-lg p-1 border border-[#E8E2D8]">
                   <button
                     onClick={() => updateQuantity(item.product.id!, item.quantity - 1)}
-                    className="w-7 h-7 rounded-md bg-[#151c2c] hover:bg-[#232d42] text-white flex items-center justify-center text-xs font-bold transition-all active:scale-95"
+                    className="w-7 h-7 rounded-md bg-white hover:bg-[#E8E2D8] text-[#2A2622] flex items-center justify-center text-xs font-bold transition-all border border-[#E8E2D8] active:scale-95"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
-                  <span className="w-8 text-center text-xs font-bold text-white font-mono">
+                  <span className="w-8 text-center text-xs font-bold text-[#2A2622]">
                     {item.quantity}
                   </span>
                   <button
                     onClick={() => updateQuantity(item.product.id!, item.quantity + 1)}
-                    className="w-7 h-7 rounded-md bg-[#151c2c] hover:bg-[#232d42] text-white flex items-center justify-center text-xs font-bold transition-all active:scale-95"
+                    className="w-7 h-7 rounded-md bg-white hover:bg-[#E8E2D8] text-[#2A2622] flex items-center justify-center text-xs font-bold transition-all border border-[#E8E2D8] active:scale-95"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
-                <span className="font-extrabold text-xs text-slate-100 font-mono">
+                <span className="font-bold text-xs text-[#2A2622]">
                   Rp {(item.product.price * item.quantity).toLocaleString('id-ID')}
                 </span>
               </div>
@@ -466,27 +469,24 @@ const CartContent: React.FC<CartContentProps> = ({
         )}
       </div>
 
-      {/* Cart Calculation Footer & Checkout Action */}
-      <div className="p-4 border-t border-[#232d42] bg-[#151c2c] space-y-3 shrink-0">
+      <div className="p-4 border-t border-[#E8E2D8] bg-white space-y-3 shrink-0 shadow-md">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-slate-400 flex items-center gap-1">
-            <Tag className="w-3.5 h-3.5 text-cyan-400" />
+          <span className="text-[#8A8175] flex items-center gap-1 font-medium">
+            <Tag className="w-3.5 h-3.5 text-[#D97706]" />
             Diskon
           </span>
           <div className="flex items-center gap-2">
             <input
               type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
               value={discountValue || ''}
               onChange={(e) => setDiscount(parseFloat(e.target.value) || 0, discountType)}
               placeholder="0"
-              className="w-20 bg-[#0b0f19] border border-[#232d42] rounded-lg px-2 py-1 text-right text-xs text-white focus:outline-none focus:border-cyan-500 font-mono"
+              className="w-20 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-right text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
             />
             <select
               value={discountType}
               onChange={(e) => setDiscount(discountValue, e.target.value as any)}
-              className="bg-[#0b0f19] border border-[#232d42] rounded-lg px-1.5 py-1 text-xs text-white focus:outline-none"
+              className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-1.5 py-1 text-xs text-[#2A2622] focus:outline-none"
             >
               <option value="nominal">Rp</option>
               <option value="percent">%</option>
@@ -494,34 +494,34 @@ const CartContent: React.FC<CartContentProps> = ({
           </div>
         </div>
 
-        <div className="space-y-1.5 pt-2 border-t border-[#232d42]/60 text-xs">
-          <div className="flex justify-between text-slate-400">
+        <div className="space-y-1.5 pt-2 border-t border-[#E8E2D8] text-xs">
+          <div className="flex justify-between text-[#8A8175]">
             <span>Subtotal:</span>
-            <span className="font-mono">Rp {subtotal.toLocaleString('id-ID')}</span>
+            <span className="font-semibold text-[#2A2622]">Rp {subtotal.toLocaleString('id-ID')}</span>
           </div>
           {discountAmount > 0 && (
-            <div className="flex justify-between text-rose-400">
+            <div className="flex justify-between text-[#B84B3E]">
               <span>Diskon:</span>
-              <span className="font-mono">-Rp {discountAmount.toLocaleString('id-ID')}</span>
+              <span className="font-semibold">-Rp {discountAmount.toLocaleString('id-ID')}</span>
             </div>
           )}
           {taxAmount > 0 && (
-            <div className="flex justify-between text-slate-400">
+            <div className="flex justify-between text-[#8A8175]">
               <span>Pajak (PPN {taxRate}%):</span>
-              <span className="font-mono">Rp {taxAmount.toLocaleString('id-ID')}</span>
+              <span className="font-semibold text-[#2A2622]">Rp {taxAmount.toLocaleString('id-ID')}</span>
             </div>
           )}
 
-          <div className="flex justify-between items-center text-white font-extrabold text-base pt-2 border-t border-[#232d42]">
+          <div className="flex justify-between items-center text-[#2A2622] font-bold text-base pt-2 border-t border-[#E8E8D8]">
             <span>TOTAL BAYAR:</span>
-            <span className="text-cyan-400 text-lg font-mono">Rp {totalAmount.toLocaleString('id-ID')}</span>
+            <span className="text-[#D97706] text-xl font-black">Rp {totalAmount.toLocaleString('id-ID')}</span>
           </div>
         </div>
 
         <button
           disabled={cart.length === 0}
           onClick={onCheckout}
-          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-sm shadow-xl shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px]"
+          className="w-full py-3.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-sm shadow-md disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-[0.98] min-h-[48px]"
         >
           <span>BAYAR SEKARANG</span>
           <ArrowRight className="w-5 h-5" />

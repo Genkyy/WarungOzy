@@ -43,70 +43,70 @@ export const ReceiptModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-[#151c2c] border border-[#232d42] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+      <div className="bg-white border border-[#E8E2D8] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-4 border-b border-[#232d42] flex items-center justify-between bg-[#0f172a]">
+        <div className="p-4 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-sm font-bold text-white">Struk Pembelian Official</h2>
+            <CheckCircle className="w-5 h-5 text-[#3F7D4F]" />
+            <h2 className="text-sm font-bold text-[#2A2622]">Struk Pembelian Warung</h2>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-[#232d42]"
+            className="p-1.5 rounded-xl text-[#8A8175] hover:text-[#2A2622] bg-white border border-[#E8E2D8]"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Thermal Receipt Printable Container */}
-        <div className="p-6 overflow-y-auto flex-1 flex justify-center bg-[#0b0f19]">
+        <div className="p-6 overflow-y-auto flex-1 flex justify-center bg-[#FAF7F2]">
           <div
             id="thermal-receipt-printable"
-            className="w-full max-w-[280px] bg-white text-slate-900 p-4 font-mono text-xs shadow-2xl rounded border border-slate-300"
+            className="w-full max-w-[280px] bg-white text-[#2A2622] p-4 font-mono text-xs shadow-md rounded border border-[#E8E2D8]"
           >
             {/* Store Title Header */}
-            <div className="text-center pb-3 mb-3 border-b border-dashed border-slate-400">
-              <h1 className="font-extrabold text-sm uppercase tracking-wider text-slate-900">{settings.outlet_name}</h1>
-              <p className="text-[10px] text-slate-600">POS & Kasir iPad Web</p>
-              <p className="text-[10px] text-slate-600 mt-1">Nota: {order.order_number}</p>
-              <p className="text-[10px] text-slate-600">{new Date(order.created_at).toLocaleString('id-ID')}</p>
+            <div className="text-center pb-3 mb-3 border-b border-dashed border-[#8A8175]">
+              <h1 className="font-bold text-sm uppercase tracking-wider text-[#2A2622]">{settings.outlet_name}</h1>
+              <p className="text-[10px] text-[#8A8175]">KasirKu POS Kelontong</p>
+              <p className="text-[10px] text-[#8A8175] mt-1">Nota: {order.order_number}</p>
+              <p className="text-[10px] text-[#8A8175]">{new Date(order.created_at).toLocaleString('id-ID')}</p>
             </div>
 
             {/* Customer Info */}
-            <div className="mb-3 text-[10px] space-y-0.5 border-b border-dashed border-slate-400 pb-2 text-slate-700">
+            <div className="mb-3 text-[10px] space-y-0.5 border-b border-dashed border-[#8A8175] pb-2 text-[#2A2622]">
               <div className="flex justify-between">
                 <span>Pelanggan:</span>
-                <span className="font-bold text-slate-900">{order.customer_name || 'Umum'}</span>
+                <span className="font-bold text-[#2A2622]">{order.customer_name || 'Umum'}</span>
               </div>
               <div className="flex justify-between">
                 <span>Kasir:</span>
-                <span className="font-bold text-slate-900">Ozy</span>
+                <span className="font-bold text-[#2A2622]">Ozy</span>
               </div>
             </div>
 
             {/* Items List */}
-            <div className="space-y-1.5 mb-3 border-b border-dashed border-slate-400 pb-3">
+            <div className="space-y-1.5 mb-3 border-b border-dashed border-[#8A8175] pb-3">
               {items.map((item, idx) => (
                 <div key={idx} className="text-[11px]">
-                  <div className="font-bold text-slate-900 truncate">{item.product_name}</div>
-                  <div className="flex justify-between text-slate-600 pl-2">
+                  <div className="font-bold text-[#2A2622] truncate">{item.product_name}</div>
+                  <div className="flex justify-between text-[#8A8175] pl-2">
                     <span>{item.quantity} x Rp {item.unit_price.toLocaleString('id-ID')}</span>
-                    <span className="font-bold text-slate-900">Rp {item.subtotal.toLocaleString('id-ID')}</span>
+                    <span className="font-bold text-[#2A2622]">Rp {item.subtotal.toLocaleString('id-ID')}</span>
                   </div>
-                  {item.notes && <div className="text-[9px] text-slate-500 italic pl-2">({item.notes})</div>}
+                  {item.notes && <div className="text-[9px] text-[#8A8175] italic pl-2">({item.notes})</div>}
                 </div>
               ))}
             </div>
 
             {/* Totals Summary */}
-            <div className="space-y-1 text-[11px] mb-4 text-slate-700">
+            <div className="space-y-1 text-[11px] mb-4 text-[#2A2622]">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
                 <span>Rp {order.subtotal.toLocaleString('id-ID')}</span>
               </div>
               {order.discount_amount > 0 && (
-                <div className="flex justify-between text-red-600 font-semibold">
+                <div className="flex justify-between text-[#B84B3E] font-semibold">
                   <span>Diskon:</span>
                   <span>-Rp {order.discount_amount.toLocaleString('id-ID')}</span>
                 </div>
@@ -117,19 +117,19 @@ export const ReceiptModal: React.FC = () => {
                   <span>Rp {order.tax_amount.toLocaleString('id-ID')}</span>
                 </div>
               )}
-              <div className="flex justify-between font-extrabold text-sm border-t border-slate-900 pt-1.5 mt-1 text-slate-900">
+              <div className="flex justify-between font-bold text-sm border-t border-[#2A2622] pt-1.5 mt-1 text-[#2A2622]">
                 <span>TOTAL:</span>
                 <span>Rp {order.total_amount.toLocaleString('id-ID')}</span>
               </div>
 
               {/* Payment Detail */}
               {payment && (
-                <div className="pt-2 border-t border-dashed border-slate-400 space-y-0.5 text-[10px]">
-                  <div className="flex justify-between text-slate-800">
+                <div className="pt-2 border-t border-dashed border-[#8A8175] space-y-0.5 text-[10px]">
+                  <div className="flex justify-between text-[#2A2622]">
                     <span className="uppercase font-bold">Bayar ({payment.method}):</span>
                     <span>Rp {payment.amount.toLocaleString('id-ID')}</span>
                   </div>
-                  <div className="flex justify-between text-slate-800">
+                  <div className="flex justify-between text-[#2A2622]">
                     <span>Kembali:</span>
                     <span>Rp {payment.change_amount.toLocaleString('id-ID')}</span>
                   </div>
@@ -138,25 +138,25 @@ export const ReceiptModal: React.FC = () => {
             </div>
 
             {/* Receipt Footer */}
-            <div className="text-center pt-2 border-t border-dashed border-slate-400 text-[10px] text-slate-600">
+            <div className="text-center pt-2 border-t border-dashed border-[#8A8175] text-[10px] text-[#8A8175]">
               <p>{settings.receipt_footer}</p>
-              <p className="text-[9px] text-slate-400 mt-1">~ Terima Kasih ~</p>
+              <p className="text-[9px] text-[#8A8175] mt-1">~ Terima Kasih ~</p>
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-[#232d42] bg-[#0f172a] flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-[#E8E2D8] bg-[#FAF7F2] flex items-center justify-between gap-3">
           <button
             onClick={handleClose}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[#232d42] bg-[#151c2c] text-slate-300 hover:text-white font-semibold text-xs transition-all"
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-[#E8E2D8] bg-white text-[#8A8175] hover:text-[#2A2622] font-semibold text-xs transition-all min-h-[44px]"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Transaksi Baru</span>
           </button>
           <button
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-bold text-xs shadow-sm transition-all min-h-[44px]"
           >
             <Printer className="w-4 h-4" />
             <span>Cetak Struk</span>
