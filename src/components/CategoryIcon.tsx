@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Coffee, Package, Zap, Flame, Tag, ShoppingBag, Layers } from 'lucide-react';
+import { Utensils, Coffee, Package, Zap, Flame, HeartPulse, Sparkles, Layers } from 'lucide-react';
 
 interface CategoryIconProps {
   iconName?: string;
@@ -16,13 +16,19 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({ iconName, categoryNa
   if (iconStr.includes('minuman') || iconStr === 'coffee' || iconStr.includes('🥤')) {
     return <Coffee className={className} />;
   }
-  if (iconStr.includes('sembako') || iconStr === 'package' || iconStr.includes('🌾')) {
+  if (iconStr.includes('sembako') || iconStr.includes('dapur') || iconStr === 'package' || iconStr.includes('🌾')) {
     return <Package className={className} />;
   }
-  if (iconStr.includes('top up') || iconStr.includes('topup') || iconStr === 'zap' || iconStr.includes('⚡')) {
+  if (iconStr.includes('kesehatan') || iconStr.includes('perawatan') || iconStr === 'heartpulse' || iconStr.includes('🩺') || iconStr.includes('butan') || iconStr.includes('autan')) {
+    return <HeartPulse className={className} />;
+  }
+  if (iconStr.includes('kebersihan') || iconStr.includes('rumah') || iconStr === 'sparkles' || iconStr.includes('🧼')) {
+    return <Sparkles className={className} />;
+  }
+  if (iconStr.includes('top up') || iconStr.includes('topup') || iconStr.includes('digital') || iconStr === 'zap' || iconStr.includes('⚡')) {
     return <Zap className={className} />;
   }
-  if (iconStr.includes('rokok') || iconStr === 'flame' || iconStr.includes('🚬')) {
+  if (iconStr.includes('rokok') || iconStr.includes('tembakau') || iconStr === 'flame' || iconStr.includes('🚬')) {
     return <Flame className={className} />;
   }
 

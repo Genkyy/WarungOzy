@@ -108,6 +108,7 @@ export interface StoreSettings {
   enable_bluetooth_scanner?: string; // 'true' | 'false'
   scanner_beep_sound?: string; // 'true' | 'false'
   scanner_max_delay?: string; // ms delay, default '80'
+  qris_image_url?: string; // custom store QRIS image
 }
 
 export interface CartItem {

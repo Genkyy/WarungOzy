@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/indexedDBRepository';
-import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText, Bluetooth, Sliders } from 'lucide-react';
+import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText, Bluetooth, Sliders, QrCode, Download, Upload } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { settings, fetchMasterData, showToast, showConfirm, setBluetoothModalOpen, scannerConnectionStatus } = usePOSStore();
@@ -10,6 +10,7 @@ export const SettingsPage: React.FC = () => {
   const [taxRate, setTaxRate] = useState(settings.tax_rate);
   const [receiptFooter, setReceiptFooter] = useState(settings.receipt_footer);
   const [lowStockThreshold, setLowStockThreshold] = useState(settings.low_stock_threshold);
+  const [qrisImageUrl, setQrisImageUrl] = useState(settings.qris_image_url || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -21,7 +22,8 @@ export const SettingsPage: React.FC = () => {
         tax_rate: taxRate.trim(),
         currency: 'IDR',
         receipt_footer: receiptFooter.trim(),
-        low_stock_threshold: lowStockThreshold.trim()
+        low_stock_threshold: lowStockThreshold.trim(),
+        qris_image_url: qrisImageUrl.trim()
       });
 
       await fetchMasterData();
@@ -54,8 +56,52 @@ export const SettingsPage: React.FC = () => {
     });
   };
 
+  const handleExportBackup = async () => {
+    try {
+      const jsonStr = await repository.exportDatabaseJSON();
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `backup_warung_ozy_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Cadangan Database (.json) berhasil diunduh!', 'success');
+    } catch (err) {
+      showToast('Gagal mengunduh cadangan database', 'error');
+    }
+  };
+
+  const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    showConfirm({
+      title: 'Pulihkan Database dari File Backup',
+      message: 'Apakah Anda yakin ingin memulihkan database dari file cadangan ini? Data lokal saat ini akan diperbarui dengan data dari file backup.',
+      type: 'warning',
+      confirmText: 'Ya, Pulihkan Database',
+      cancelText: 'Batal',
+      onConfirm: () => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const content = event.target?.result as string;
+            await repository.importDatabaseJSON(content);
+            await fetchMasterData();
+            showToast('Database berhasil dipulihkan dari file backup!', 'success');
+          } catch (err) {
+            console.error(err);
+            showToast('Gagal memulihkan database. File backup tidak valid.', 'error');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+  };
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-6 h-[calc(100vh-4rem)] pb-24 select-none">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-6 h-[calc(100vh-4rem)] pb-24">
       {/* Title Header */}
       <div>
         <h1 className="text-lg sm:text-xl font-bold text-[#2A2622] flex items-center gap-2">
@@ -130,6 +176,23 @@ export const SettingsPage: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-semibold text-[#2A2622] mb-1.5 flex items-center gap-1.5">
+              <QrCode className="w-4 h-4 text-[#D97706]" />
+              URL Gambar Kode QRIS Resmi Toko / Warung (Opsional)
+            </label>
+            <input
+              type="text"
+              value={qrisImageUrl}
+              onChange={(e) => setQrisImageUrl(e.target.value)}
+              placeholder="https://... (URL Foto QRIS BCA/Mandiri/DANA/OVO Warung Anda)"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
+            />
+            <p className="text-[10px] text-[#8A8175] mt-1">
+              Jika diisi, gambar QRIS resmi warung Anda akan langsung muncul di layar kasir saat pelanggan memilih pembayaran QRIS.
+            </p>
+          </div>
+
           {/* Bluetooth & Hardware Scanner Settings Card */}
           <div className="pt-4 border-t border-[#E8E2D8] space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
@@ -175,6 +238,39 @@ export const SettingsPage: React.FC = () => {
             </button>
           </div>
         </form>
+
+        {/* Database Backup & Restore Panel (For Long-Term Data Safety) */}
+        <div className="paper-panel rounded-xl p-5 sm:p-6 border border-[#E8E2D8] bg-white space-y-3 shadow-sm">
+          <h2 className="text-sm font-bold text-[#2A2622] flex items-center gap-2">
+            <Download className="w-4 h-4 text-[#D97706]" />
+            Cadangan & Pemulihan Database Toko (Backup & Restore .json)
+          </h2>
+          <p className="text-xs text-[#8A8175]">
+            Unduh seluruh data produk, riwayat nota transaksi, mutasi stok, dan pengeluaran ke dalam file cadangan (`.json`). File ini dapat dipulihkan kapan saja atau dipindahkan ke iPad/HP baru.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={handleExportBackup}
+              className="px-4 py-2.5 rounded-xl bg-[#FEF3C7] hover:bg-[#D97706] text-[#D97706] hover:text-white border border-[#D97706]/30 font-bold text-xs flex items-center gap-2 transition-all min-h-[42px]"
+            >
+              <Download className="w-4 h-4" />
+              <span>Unduh Cadangan Database (.json)</span>
+            </button>
+
+            <label className="px-4 py-2.5 rounded-xl bg-[#F0F7F2] hover:bg-[#3F7D4F] text-[#3F7D4F] hover:text-white border border-[#3F7D4F]/30 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer min-h-[42px]">
+              <Upload className="w-4 h-4" />
+              <span>Pulihkan Database dari File</span>
+              <input
+                type="file"
+                accept=".json"
+                onChange={handleImportBackup}
+                className="hidden"
+              />
+            </label>
+          </div>
+        </div>
 
         {/* Reset Seed Data Panel */}
         <div className="paper-panel rounded-xl p-5 sm:p-6 border border-[#B84B3E]/30 bg-white space-y-3 shadow-sm">

@@ -4,6 +4,8 @@ import { repository } from '../services/indexedDBRepository';
 import { X, Banknote, QrCode, Wallet, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
+
 export const PaymentModal: React.FC = () => {
   const {
     isPaymentModalOpen,
@@ -18,7 +20,8 @@ export const PaymentModal: React.FC = () => {
     setLastCompletedOrder,
     setReceiptModalOpen,
     showToast,
-    fetchMasterData
+    fetchMasterData,
+    settings
   } = usePOSStore();
 
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'qris' | 'ewallet'>('cash');
@@ -40,12 +43,12 @@ export const PaymentModal: React.FC = () => {
   const taxAmount = Math.round((taxableAmount * taxRate) / 100);
   const totalAmount = taxableAmount + taxAmount;
 
-  const cashGiven = paymentMethod === 'cash' ? parseFloat(cashAmountInput) || 0 : totalAmount;
+  const cashGiven = paymentMethod === 'cash' ? parseRupiah(cashAmountInput) : totalAmount;
   const changeAmount = Math.max(0, cashGiven - totalAmount);
   const isCashInsufficient = paymentMethod === 'cash' && cashGiven < totalAmount;
 
   const handleQuickCash = (amount: number) => {
-    setCashAmountInput(amount.toString());
+    setCashAmountInput(formatRupiah(amount, false));
   };
 
   const handleProcessPayment = async () => {
@@ -101,7 +104,7 @@ export const PaymentModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white border border-[#E8E2D8] rounded-t-2xl sm:rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh]">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
@@ -142,7 +145,7 @@ export const PaymentModal: React.FC = () => {
                     onClick={() => {
                       setPaymentMethod(m.id as any);
                       if (m.id === 'cash' && !cashAmountInput) {
-                        setCashAmountInput(totalAmount.toString());
+                        setCashAmountInput(formatRupiah(totalAmount, false));
                       }
                     }}
                     className={`p-3 rounded-xl border flex flex-col items-center gap-1.5 text-center transition-all min-h-[68px] ${
@@ -171,11 +174,15 @@ export const PaymentModal: React.FC = () => {
                     Rp
                   </span>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={cashAmountInput}
-                    onChange={(e) => setCashAmountInput(e.target.value)}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setCashAmountInput(raw ? formatRupiah(raw, false) : '');
+                    }}
                     placeholder="0"
-                    className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-10 pr-4 py-3 text-base sm:text-lg font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                    className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-10 pr-4 py-3 text-base sm:text-lg font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706] select-text"
                     autoFocus
                   />
                 </div>
@@ -227,12 +234,18 @@ export const PaymentModal: React.FC = () => {
           {(paymentMethod === 'qris' || paymentMethod === 'ewallet') && (
             <div className="space-y-3 bg-[#FAF7F2] p-4 rounded-xl border border-[#E8E2D8]">
               {paymentMethod === 'qris' && (
-                <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-xl text-[#2A2622] text-center border border-[#E8E2D8]">
-                  <div className="w-36 h-36 bg-white border-2 border-[#2A2622] rounded-lg flex items-center justify-center p-1.5">
-                    <QrCode className="w-28 h-28 text-[#2A2622]" />
-                  </div>
-                  <p className="mt-2 text-xs font-bold uppercase tracking-wider text-[#2A2622]">Scan QRIS Warung Ozy</p>
-                  <p className="text-[10px] text-[#8A8175]">BCA, Mandiri, GoPay, OVO, DANA, ShopeePay</p>
+                <div className="flex flex-col items-center justify-center p-3.5 bg-white rounded-xl text-[#2A2622] text-center border border-[#E8E2D8] space-y-2">
+                  {settings.qris_image_url ? (
+                    <div className="w-48 h-48 bg-white border-2 border-[#2A2622] rounded-xl flex items-center justify-center p-1.5 overflow-hidden shadow-sm">
+                      <img src={settings.qris_image_url} alt="QRIS Warung" className="w-full h-full object-contain" />
+                    </div>
+                  ) : (
+                    <div className="w-36 h-36 bg-white border-2 border-[#2A2622] rounded-lg flex items-center justify-center p-1.5 shadow-sm">
+                      <QrCode className="w-28 h-28 text-[#2A2622]" />
+                    </div>
+                  )}
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#2A2622]">Scan QRIS {settings.outlet_name || 'Warung Ozy'}</p>
+                  <p className="text-[10px] text-[#8A8175]">BCA, Mandiri, GoPay, OVO, DANA, ShopeePay, Mobile Banking</p>
                 </div>
               )}
 

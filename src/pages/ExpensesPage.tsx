@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { repository } from '../services/indexedDBRepository';
-import { Expense } from '../types';
+import { Expense, MenuItem } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
-import { TrendingDown, Plus, Trash2 } from 'lucide-react';
+import { TrendingDown, Plus, Trash2, PackageCheck, CheckCircle2 } from 'lucide-react';
+import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
 
 export const ExpensesPage: React.FC = () => {
-  const { showToast, showConfirm } = usePOSStore();
+  const {
+    products,
+    fetchMasterData,
+    showToast,
+    showConfirm,
+    setAddProductModalOpen,
+    setNewProductDraft
+  } = usePOSStore();
+
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -15,6 +24,15 @@ export const ExpensesPage: React.FC = () => {
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Smart Restock Popup Candidate State (For both existing and unlisted products)
+  const [restockCandidate, setRestockCandidate] = useState<{
+    matchedProduct?: MenuItem;
+    unlistedName?: string;
+    qty: number;
+    unit: string;
+    isNew: boolean;
+  } | null>(null);
 
   const loadExpenses = async () => {
     const data = await repository.getExpenses();
@@ -27,7 +45,8 @@ export const ExpensesPage: React.FC = () => {
 
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!description.trim() || !amount) {
+    const numericAmount = parseRupiah(amount);
+    if (!description.trim() || numericAmount <= 0) {
       showToast('Keterangan dan nominal pengeluaran wajib diisi!', 'error');
       return;
     }
@@ -43,12 +62,42 @@ export const ExpensesPage: React.FC = () => {
       await repository.createExpense({
         category,
         description: description.trim(),
-        amount: parseFloat(amount) || 0,
+        amount: numericAmount,
         expense_date: expenseDate,
         notes: finalNotes
       });
 
-      showToast('Pengeluaran berhasil dicatat!', 'success');
+      const qtyNum = parseInt(itemQty, 10) || 1;
+      const descLower = description.trim().toLowerCase();
+
+      // Smart Product Matching: Check if description matches any product in Master Stock
+      if (category === 'belanja_barang') {
+        const matched = products.find((p) => {
+          const prodName = p.name.toLowerCase();
+          return prodName.includes(descLower) || descLower.includes(prodName);
+        });
+
+        if (matched) {
+          // Trigger Smart Restock Popup Modal for Existing Product!
+          setRestockCandidate({
+            matchedProduct: matched,
+            qty: qtyNum,
+            unit: itemUnit,
+            isNew: false
+          });
+        } else {
+          // Trigger Smart Popup Modal for Unlisted Product!
+          setRestockCandidate({
+            unlistedName: description.trim(),
+            qty: qtyNum,
+            unit: itemUnit,
+            isNew: true
+          });
+        }
+      } else {
+        showToast('Pengeluaran berhasil dicatat!', 'success');
+      }
+
       setDescription('');
       setAmount('');
       setItemQty('');
@@ -84,7 +133,7 @@ export const ExpensesPage: React.FC = () => {
   const totalExpenseAmount = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6 select-none">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FAF7F2] space-y-4 sm:space-y-6 h-[calc(100vh-4rem)] pb-28 ipad:pb-6">
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -124,12 +173,44 @@ export const ExpensesPage: React.FC = () => {
               </select>
             </div>
 
-            {/* Dynamic Unit Dropdown & Quantity for Kulakan / Belanja Stok Barang */}
+            <div>
+              <label className="block text-xs font-semibold text-[#2A2622] mb-1">
+                Keterangan Pengeluaran / Nama Barang Kulakan *
+              </label>
+              <input
+                type="text"
+                required
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Misal: Autan Lotion 50g atau Indomie Goreng"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+              />
+            </div>
+
+            {/* Dynamic Quantity & Unit Dropdown for Kulakan / Belanja Stok Barang */}
             {category === 'belanja_barang' && (
               <div className="p-3 rounded-xl bg-[#FEF3C7]/50 border border-[#D97706]/30 space-y-2 animate-fadeIn">
                 <div className="grid grid-cols-2 gap-2">
+                  {/* 1. JUMLAH KUANTITAS */}
                   <div>
-                    <label className="block text-[11px] font-bold text-[#D97706] mb-1">Tipe Satuan Barang</label>
+                    <label className="block text-[11px] font-extrabold text-[#2A2622] mb-1">
+                      Jumlah Kuantitas *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={itemQty}
+                      onChange={(e) => setItemQty(e.target.value)}
+                      placeholder="Misal: 50"
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-black text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                    />
+                  </div>
+
+                  {/* 2. TIPE SATUAN BARANG */}
+                  <div>
+                    <label className="block text-[11px] font-extrabold text-[#2A2622] mb-1">
+                      Tipe Satuan Barang
+                    </label>
                     <select
                       value={itemUnit}
                       onChange={(e) => setItemUnit(e.target.value)}
@@ -142,45 +223,27 @@ export const ExpensesPage: React.FC = () => {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-[#D97706] mb-1">Jumlah Kuantitas</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={itemQty}
-                      onChange={(e) => setItemQty(e.target.value)}
-                      placeholder="Misal: 5"
-                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
-                    />
-                  </div>
                 </div>
-                <p className="text-[10px] text-[#8A8175]">
-                  Pilih tipe satuan barang kulakan warung (Dus, Renteng, Kg, dll).
-                </p>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-[#2A2622] mb-1">Keterangan Pengeluaran *</label>
+              <label className="block text-xs font-semibold text-[#2A2622] mb-1">Nominal Pengeluaran (Rp) *</label>
               <input
                 type="text"
-                required
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Misal: Beli Beras 50kg & Minyak 2 Dus"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#2A2622] mb-1">Nominal (Rp) *</label>
-              <input
-                type="number"
+                inputMode="numeric"
                 required
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="150000"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#B84B3E] focus:outline-none focus:border-[#D97706]"
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  if (!raw) {
+                    setAmount('');
+                    return;
+                  }
+                  setAmount(formatRupiah(raw, true));
+                }}
+                placeholder="Rp 150.000"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#B84B3E] focus:outline-none focus:border-[#D97706] select-text"
               />
             </div>
 
@@ -262,6 +325,111 @@ export const ExpensesPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Smart Restock Confirmation Pop-Up Modal (Handles both Found and Unlisted products) */}
+      {restockCandidate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+          <div className="bg-white border border-[#E8E2D8] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-5 sm:p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-3 rounded-2xl shrink-0 ${
+                restockCandidate.isNew
+                  ? 'bg-[#FEF3C7] text-[#D97706] border border-[#D97706]/30'
+                  : 'bg-[#F0F7F2] text-[#059669] border border-[#059669]/30'
+              }`}>
+                <PackageCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-sm text-[#2A2622]">
+                  {restockCandidate.isNew
+                    ? 'Produk Belum Terdaftar di Stok Warung'
+                    : 'Produk Terdeteksi di Master Stok!'}
+                </h3>
+                <p className="text-xs text-[#8A8175]">
+                  {restockCandidate.isNew
+                    ? 'Barang baru belum ada di daftar master stok'
+                    : 'Pengeluaran cocok dengan produk terdaftar'}
+                </p>
+              </div>
+            </div>
+
+            {!restockCandidate.isNew && restockCandidate.matchedProduct ? (
+              /* Case A: Product Found in Master Stock */
+              <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#E8E2D8] space-y-1">
+                <p className="text-xs font-bold text-[#2A2622]">{restockCandidate.matchedProduct.name}</p>
+                <p className="text-[11px] text-[#8A8175]">
+                  Stok saat ini: <span className="font-extrabold text-[#D97706]">{restockCandidate.matchedProduct.stock} {restockCandidate.matchedProduct.unit}</span>
+                </p>
+                <p className="text-xs text-[#059669] font-bold mt-1">
+                  Apakah Anda ingin menambahkan <span className="underline">+ {restockCandidate.qty} {restockCandidate.unit}</span> ke stok produk ini sebagai Restok?
+                </p>
+              </div>
+            ) : (
+              /* Case B: Product NOT Found in Master Stock */
+              <div className="bg-[#FEF3C7]/40 p-3.5 rounded-xl border border-[#D97706]/30 space-y-1">
+                <p className="text-xs font-extrabold text-[#2A2622]">"{restockCandidate?.unlistedName}"</p>
+                <p className="text-xs text-[#D97706] font-bold">
+                  Barang ini belum terdaftar. Apakah Anda ingin mendaftarkan produk ini ke Master Stok warung?
+                </p>
+                <p className="text-[10px] text-[#8A8175] mt-1">
+                  Pengeluaran telah dicatat. Mengklik "Ya" akan membuka form untuk melengkapi harga jual & modal.
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setRestockCandidate(null);
+                  showToast('Pengeluaran dicatat (Tanpa update stok)', 'info');
+                }}
+                className="px-4 py-2.5 rounded-xl border border-[#E8E2D8] bg-white text-[#8A8175] hover:text-[#2A2622] text-xs font-semibold"
+              >
+                Tidak, Hanya Catat
+              </button>
+
+              {!restockCandidate.isNew && restockCandidate.matchedProduct ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await repository.adjustStock(restockCandidate.matchedProduct!.id!, restockCandidate.qty, 'adjustment_in');
+                      await fetchMasterData();
+                      showToast(`Stok '${restockCandidate.matchedProduct!.name}' bertambah +${restockCandidate.qty} ${restockCandidate.unit}!`, 'success');
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setRestockCandidate(null);
+                    }
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[40px]"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Ya, Tambahkan Stok (+{restockCandidate.qty})</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewProductDraft({
+                      name: restockCandidate.unlistedName,
+                      stock: restockCandidate.qty.toString(),
+                      unit: restockCandidate.unit
+                    });
+                    setAddProductModalOpen(true);
+                    setRestockCandidate(null);
+                    showToast('Pengeluaran dicatat. Silakan lengkapi harga jual & modal produk!', 'info');
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[40px]"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Ya, Buat Produk Baru</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

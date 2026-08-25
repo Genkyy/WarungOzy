@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/indexedDBRepository';
 import { openFoodFactsService } from '../services/openFoodFactsService';
 import { X, Plus, PackagePlus, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
+import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
 
 export const AddProductModal: React.FC = () => {
   const {
     isAddProductModalOpen,
     setAddProductModalOpen,
+    newProductDraft,
+    setNewProductDraft,
     categories,
     fetchMasterData,
     showToast
@@ -26,12 +29,21 @@ export const AddProductModal: React.FC = () => {
   const [isFetchingOFF, setIsFetchingOFF] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
+  useEffect(() => {
+    if (isAddProductModalOpen && newProductDraft) {
+      if (newProductDraft.name) setName(newProductDraft.name);
+      if (newProductDraft.stock) setStock(newProductDraft.stock);
+      if (newProductDraft.unit) setUnit(newProductDraft.unit);
+      setNewProductDraft(null); // Clear draft after loading
+    }
+  }, [isAddProductModalOpen, newProductDraft, setNewProductDraft]);
+
   if (!isAddProductModalOpen) return null;
 
   const handleGenerateBarcode = () => {
-    const newBarcode = openFoodFactsService.generateInternalBarcode();
-    setBarcode(newBarcode);
-    showToast('Barcode unik internal berhasil di-generate otomatis!', 'success');
+    const timestamp = Date.now().toString().slice(-8);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    setBarcode(`899${timestamp}${random}`);
   };
 
   const handleAutoSuggestPhoto = () => {
@@ -274,22 +286,30 @@ export const AddProductModal: React.FC = () => {
             <div>
               <label className="block text-xs font-semibold text-[#2A2622] mb-1">Harga Jual (Rp) *</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 required
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="3500"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#D97706] focus:outline-none focus:border-[#D97706]"
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  setPrice(raw ? formatRupiah(raw, true) : '');
+                }}
+                placeholder="Rp 3.500"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#D97706] focus:outline-none focus:border-[#D97706] select-text"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#2A2622] mb-1">Modal HPP (Rp)</label>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={costPrice}
-                onChange={(e) => setCostPrice(e.target.value)}
-                placeholder="2800"
-                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#8A8175] focus:outline-none focus:border-[#D97706]"
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  setCostPrice(raw ? formatRupiah(raw, true) : '');
+                }}
+                placeholder="Rp 2.800"
+                className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#8A8175] focus:outline-none focus:border-[#D97706] select-text"
               />
             </div>
           </div>

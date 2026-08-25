@@ -27,7 +27,7 @@ export const Header: React.FC = () => {
   const isStandby = scannerConnectionStatus === 'standby';
 
   return (
-    <header className="h-16 bg-white border-b border-[#E8E2D8] px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 z-10 shrink-0 select-none shadow-sm">
+    <header className="h-16 bg-white border-b border-[#E8E2D8] px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 z-10 shrink-0 shadow-sm">
       {/* Search Input Bar */}
       <div className="flex-1 max-w-xl relative">
         <Search className="w-4 h-4 text-[#8A8175] absolute left-3.5 top-1/2 -translate-y-1/2" />

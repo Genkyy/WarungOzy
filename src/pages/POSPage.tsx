@@ -81,7 +81,7 @@ export const POSPage: React.FC = () => {
   const lowStockThreshold = parseInt(settings.low_stock_threshold, 10) || 5;
 
   return (
-    <div className="flex-1 flex flex-col ipad:flex-row overflow-hidden bg-[#FAF7F2] h-[calc(100vh-4rem)] relative select-none">
+    <div className="flex-1 flex flex-col ipad:flex-row overflow-hidden bg-[#FAF7F2] h-[calc(100vh-4rem)] relative">
       {/* LEFT SECTION: Catalog & Categories */}
       <div className="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-4 border-r border-[#E8E2D8]">
         
@@ -398,7 +398,7 @@ const CartContent: React.FC<CartContentProps> = ({
   onCheckout
 }) => {
   return (
-    <div className="flex flex-col h-full bg-white select-none">
+    <div className="flex flex-col h-full bg-white">
       <div className="p-3 border-b border-[#E8E2D8] bg-[#FAF7F2] flex items-center gap-2 shrink-0">
         <User className="w-4 h-4 text-[#8A8175] shrink-0" />
         <input

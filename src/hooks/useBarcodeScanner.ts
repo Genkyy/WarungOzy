@@ -50,20 +50,18 @@ export function useBarcodeScanner() {
 
     const handleKeyDown = async (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-
-      // Allow barcode scan if target is explicitly marked for barcode input
       const isBarcodeInput = target && target.getAttribute && target.getAttribute('data-barcode-input') === 'true';
-
-      // Ignore normal manual typing in generic input fields / textareas unless it's ultra fast HID typing or marked barcode input
-      if (!isBarcodeInput && target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-        if (e.key === 'Enter') {
-          return;
-        }
-      }
+      const isInputField = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
 
       const currentTime = Date.now();
       const timeDiff = currentTime - lastKeyTime.current;
       lastKeyTime.current = currentTime;
+
+      // Ignore normal manual human typing in generic input fields / textareas
+      if (!isBarcodeInput && isInputField && timeDiff > maxDelay) {
+        barcodeBuffer.current = '';
+        return;
+      }
 
       // Hardware Bluetooth / USB barcode scanners send characters rapidly (< 80ms)
       if (timeDiff > maxDelay && timeDiff < 3000) {

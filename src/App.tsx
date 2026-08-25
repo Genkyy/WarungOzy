@@ -53,7 +53,7 @@ export const App: React.FC = () => {
     <>
       {showSplash && <SplashScreen onFinished={() => setShowSplash(false)} />}
 
-      <div className="flex h-screen w-screen overflow-hidden bg-[#0b0f19] text-slate-100 font-sans select-none">
+      <div className="flex h-screen w-screen overflow-hidden bg-[#0b0f19] text-slate-100 font-sans">
         {/* Sidebar Navigation */}
         <Sidebar />
 

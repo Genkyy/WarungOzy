@@ -28,7 +28,7 @@ export default {
         sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       screens: {
-        'ipad': '820px',
+        'ipad': '768px',
       }
     },
   },

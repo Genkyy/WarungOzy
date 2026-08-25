@@ -38,13 +38,15 @@ class WarungOzyDB extends Dexie {
 
 export const db = new WarungOzyDB();
 
-// 5 Exact Warung Categories Requested
+// Indomaret / Minimarket Categories
 export const DEFAULT_CATEGORIES: Omit<Category, 'id'>[] = [
-  { name: 'Makanan', icon: 'Utensils', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Makanan & Snack', icon: 'Utensils', sort_order: 1, is_active: true, created_at: new Date().toISOString() },
   { name: 'Minuman', icon: 'Coffee', sort_order: 2, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Sembako', icon: 'Package', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Top Up', icon: 'Zap', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
-  { name: 'Rokok', icon: 'Flame', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Sembako & Dapur', icon: 'Package', sort_order: 3, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Kesehatan & Perawatan Diri', icon: 'HeartPulse', sort_order: 4, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Kebersihan & Rumah Tangga', icon: 'Sparkles', sort_order: 5, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Top Up & Digital', icon: 'Zap', sort_order: 6, is_active: true, created_at: new Date().toISOString() },
+  { name: 'Rokok & Tembakau', icon: 'Flame', sort_order: 7, is_active: true, created_at: new Date().toISOString() },
 ];
 
 const DEFAULT_PRODUCTS = (catIds: Record<string, number>): Omit<MenuItem, 'id'>[] => [
@@ -564,6 +566,61 @@ export class IndexedDBRepository implements DatabaseRepository {
     for (const [key, value] of Object.entries(settings)) {
       await db.settings.put({ key, value });
     }
+  }
+
+  // Long-Term Backup & Restore Methods (.json export & import)
+  async exportDatabaseJSON(): Promise<string> {
+    await this.seedDatabaseIfNeeded();
+    const backupData = {
+      version: 1,
+      appName: 'WarungOzyPOS',
+      exportDate: new Date().toISOString(),
+      categories: await db.categories.toArray(),
+      menuItems: await db.menuItems.toArray(),
+      orders: await db.orders.toArray(),
+      orderItems: await db.orderItems.toArray(),
+      payments: await db.payments.toArray(),
+      stockMovements: await db.stockMovements.toArray(),
+      expenses: await db.expenses.toArray(),
+      settings: await db.settings.toArray()
+    };
+    return JSON.stringify(backupData, null, 2);
+  }
+
+  async importDatabaseJSON(jsonStr: string): Promise<void> {
+    const data = JSON.parse(jsonStr);
+    if (!data.categories || !data.menuItems) {
+      throw new Error('Format file cadangan backup tidak valid!');
+    }
+
+    await db.transaction('rw', [
+      db.categories,
+      db.menuItems,
+      db.orders,
+      db.orderItems,
+      db.payments,
+      db.stockMovements,
+      db.expenses,
+      db.settings
+    ], async () => {
+      await db.categories.clear();
+      await db.menuItems.clear();
+      await db.orders.clear();
+      await db.orderItems.clear();
+      await db.payments.clear();
+      await db.stockMovements.clear();
+      await db.expenses.clear();
+      await db.settings.clear();
+
+      if (data.categories.length) await db.categories.bulkAdd(data.categories);
+      if (data.menuItems.length) await db.menuItems.bulkAdd(data.menuItems);
+      if (data.orders?.length) await db.orders.bulkAdd(data.orders);
+      if (data.orderItems?.length) await db.orderItems.bulkAdd(data.orderItems);
+      if (data.payments?.length) await db.payments.bulkAdd(data.payments);
+      if (data.stockMovements?.length) await db.stockMovements.bulkAdd(data.stockMovements);
+      if (data.expenses?.length) await db.expenses.bulkAdd(data.expenses);
+      if (data.settings?.length) await db.settings.bulkAdd(data.settings);
+    });
   }
 }
 

@@ -48,6 +48,8 @@ interface POSState {
   setCameraScannerOpen: (open: boolean) => void;
   isAddProductModalOpen: boolean;
   setAddProductModalOpen: (open: boolean) => void;
+  newProductDraft: { name?: string; stock?: string; unit?: string } | null;
+  setNewProductDraft: (draft: { name?: string; stock?: string; unit?: string } | null) => void;
   isBluetoothModalOpen: boolean;
   setBluetoothModalOpen: (open: boolean) => void;
 
@@ -127,7 +129,8 @@ export const usePOSStore = create<POSState>((set, get) => ({
         low_stock_threshold: rawSettings.low_stock_threshold || '5',
         enable_bluetooth_scanner: rawSettings.enable_bluetooth_scanner ?? 'true',
         scanner_beep_sound: rawSettings.scanner_beep_sound ?? 'true',
-        scanner_max_delay: rawSettings.scanner_max_delay || '80'
+        scanner_max_delay: rawSettings.scanner_max_delay || '80',
+        qris_image_url: rawSettings.qris_image_url || ''
       };
 
       set({
@@ -236,6 +239,9 @@ export const usePOSStore = create<POSState>((set, get) => ({
 
   isAddProductModalOpen: false,
   setAddProductModalOpen: (open) => set({ isAddProductModalOpen: open }),
+
+  newProductDraft: null,
+  setNewProductDraft: (draft) => set({ newProductDraft: draft }),
 
   isBluetoothModalOpen: false,
   setBluetoothModalOpen: (open) => set({ isBluetoothModalOpen: open }),
