@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { repository } from '../services/indexedDBRepository';
 import { MenuItem, StockMovement } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
@@ -18,6 +19,117 @@ import {
   Trash2,
   Pencil
 } from 'lucide-react';
+
+interface SwipeableStockCardProps {
+  prod: MenuItem;
+  totalIn: number;
+  totalOut: number;
+  isOut: boolean;
+  isLow: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const SwipeableStockCard: React.FC<SwipeableStockCardProps> = ({
+  prod,
+  totalIn,
+  totalOut,
+  isOut,
+  isLow,
+  onEdit,
+  onDelete
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative rounded-2xl border border-[#E8E2D8] bg-[#FAF7F2] overflow-hidden shadow-xs">
+      {/* Revealed action buttons on swipe left */}
+      <div className="absolute inset-y-0 right-0 flex items-center justify-end pr-2.5 gap-2 bg-[#FAF7F2] z-0">
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(false);
+            onEdit();
+          }}
+          className="h-10 px-3.5 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all min-h-[40px]"
+        >
+          <Pencil className="w-4 h-4" />
+          <span>Edit</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setIsOpen(false);
+            onDelete();
+          }}
+          className="h-10 px-3.5 rounded-xl bg-[#B84B3E] hover:bg-[#993A2E] text-white text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95 transition-all min-h-[40px]"
+        >
+          <Trash2 className="w-4 h-4" />
+          <span>Hapus</span>
+        </button>
+      </div>
+
+      {/* Swipeable Card Surface */}
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -160, right: 0 }}
+        dragElastic={0.05}
+        animate={{ x: isOpen ? -160 : 0 }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x < -40 || info.velocity.x < -200) {
+            setIsOpen(true);
+          } else if (info.offset.x > 30 || info.velocity.x > 200) {
+            setIsOpen(false);
+          }
+        }}
+        onClick={() => {
+          if (isOpen) setIsOpen(false);
+        }}
+        className="bg-white relative z-10 p-3.5 sm:p-4 flex items-center justify-between gap-3 touch-pan-y cursor-grab active:cursor-grabbing select-none"
+      >
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-bold text-sm text-[#2A2622] truncate">{prod.name}</h3>
+            {isOut ? (
+              <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white text-[10px] font-bold shrink-0">Habis</span>
+            ) : isLow ? (
+              <span className="px-2 py-0.5 rounded-[6px] bg-[#D4A017] text-white text-[10px] font-bold shrink-0">Menipis</span>
+            ) : (
+              <span className="px-2 py-0.5 rounded-[6px] bg-[#3F7D4F] text-white text-[10px] font-bold shrink-0">Aman</span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#8A8175]">
+            <span className="font-mono text-[#D97706] font-semibold">{prod.barcode || 'Tanpa Barcode'}</span>
+            <span>•</span>
+            <span>Jual: <strong className="text-[#D97706]">Rp {prod.price.toLocaleString('id-ID')}</strong></span>
+            {prod.cost_price > 0 && (
+              <>
+                <span>•</span>
+                <span>HPP: Rp {prod.cost_price.toLocaleString('id-ID')}</span>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0 text-right">
+          <div>
+            <div className="text-sm font-extrabold text-[#2A2622]">
+              {prod.stock} <span className="text-xs font-normal text-[#8A8175]">{prod.unit}</span>
+            </div>
+            <div className="text-[10px] text-[#8A8175]">
+              <span className="text-[#3F7D4F]">+{totalIn}</span> / <span className="text-[#B84B3E]">-{totalOut}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-center justify-center text-[10px] text-[#8A8175] font-bold border-l border-[#E8E2D8] pl-2 min-w-[40px]">
+            <span>{isOpen ? 'Tutup ➔' : 'Geser ←'}</span>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 export const StockReportPage: React.FC = () => {
   const { products, categories, fetchMasterData, setAddProductModalOpen, showToast, showConfirm } = usePOSStore();
@@ -325,95 +437,150 @@ export const StockReportPage: React.FC = () => {
             })}
           </div>
 
-          <div className="paper-panel rounded-xl border border-[#E8E2D8] overflow-hidden shadow-sm flex flex-col justify-between">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF7F2] text-[#8A8175] font-bold border-b border-[#E8E2D8]">
-                  <tr>
-                    <th className="p-3.5">Nama Produk</th>
-                    <th className="p-3.5">Barcode</th>
-                    <th className="p-3.5">Modal HPP</th>
-                    <th className="p-3.5">Harga Jual</th>
-                    <th className="p-3.5">Masuk</th>
-                    <th className="p-3.5">Keluar</th>
-                    <th className="p-3.5">Sisa Stok</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E8E2D8] text-[#2A2622]">
-                  {paginatedProducts.length === 0 ? (
+          {/* DUAL DISPLAY SYSTEM: Desktop Table (lg:block) vs iPad 10 & Mobile Swipeable Cards (lg:hidden) */}
+          <div className="space-y-4">
+            {/* 1. DESKTOP & LAPTOP VIEW: Clean 100% Aligned Standard Table */}
+            <div className="hidden lg:block paper-panel rounded-xl border border-[#E8E2D8] overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#FAF7F2] text-[#8A8175] font-bold border-b border-[#E8E2D8]">
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-[#8A8175] space-y-2">
-                        <p className="font-bold text-sm text-[#2A2622]">Belum ada produk di kategori terpilih</p>
-                        <p className="text-xs text-[#8A8175]">Kategori ini belum memiliki daftar barang di master stok toko.</p>
-                        <button
-                          onClick={() => setAddProductModalOpen(true)}
-                          className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] text-white text-xs font-bold shadow-xs hover:bg-[#B45309] transition-all"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span>Tambah Produk Baru</span>
-                        </button>
-                      </td>
+                      <th className="p-3.5">Nama Produk</th>
+                      <th className="p-3.5">Barcode</th>
+                      <th className="p-3.5">Modal HPP</th>
+                      <th className="p-3.5">Harga Jual</th>
+                      <th className="p-3.5">Masuk</th>
+                      <th className="p-3.5">Keluar</th>
+                      <th className="p-3.5">Sisa Stok</th>
+                      <th className="p-3.5">Status</th>
+                      <th className="p-3.5 text-right">Aksi</th>
                     </tr>
-                  ) : (
-                    paginatedProducts.map((prod) => {
-                      const isOut = prod.stock <= 0;
-                      const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
+                  </thead>
+                  <tbody className="divide-y divide-[#E8E2D8] text-[#2A2622]">
+                    {paginatedProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="p-8 text-center text-[#8A8175] space-y-2">
+                          <p className="font-bold text-sm text-[#2A2622]">Belum ada produk di kategori terpilih</p>
+                          <p className="text-xs text-[#8A8175]">Kategori ini belum memiliki daftar barang di master stok toko.</p>
+                          <button
+                            onClick={() => setAddProductModalOpen(true)}
+                            className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] text-white text-xs font-bold shadow-xs hover:bg-[#B45309] transition-all"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Tambah Produk Baru</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedProducts.map((prod) => {
+                        const isOut = prod.stock <= 0;
+                        const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
 
-                      const itemMovements = movements.filter((m) => m.product_id === prod.id);
-                      const totalIn = itemMovements
-                        .filter((m) => m.delta > 0)
-                        .reduce((sum, m) => sum + m.delta, 0);
-                      const totalOut = itemMovements
-                        .filter((m) => m.delta < 0)
-                        .reduce((sum, m) => sum + Math.abs(m.delta), 0);
+                        const itemMovements = movements.filter((m) => m.product_id === prod.id);
+                        const totalIn = itemMovements
+                          .filter((m) => m.delta > 0)
+                          .reduce((sum, m) => sum + m.delta, 0);
+                        const totalOut = itemMovements
+                          .filter((m) => m.delta < 0)
+                          .reduce((sum, m) => sum + Math.abs(m.delta), 0);
 
-                      return (
-                        <tr key={prod.id} className="hover:bg-[#FAF7F2] transition-all">
-                          <td className="p-3.5 font-bold text-[#2A2622]">{prod.name}</td>
-                          <td className="p-3.5 font-mono text-[#D97706]">{prod.barcode || '-'}</td>
-                          <td className="p-3.5 text-[#8A8175]">Rp {prod.cost_price.toLocaleString('id-ID')}</td>
-                          <td className="p-3.5 font-bold text-[#2A2622]">Rp {prod.price.toLocaleString('id-ID')}</td>
-                          <td className="p-3.5 text-[#3F7D4F] font-semibold">+{totalIn}</td>
-                          <td className="p-3.5 text-[#B84B3E] font-semibold">-{totalOut}</td>
-                          <td className="p-3.5 font-bold text-[#2A2622]">{prod.stock} {prod.unit}</td>
-                          <td className="p-3.5">
-                            {isOut ? (
-                              <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white text-[10px] font-bold">Habis</span>
-                            ) : isLow ? (
-                              <span className="px-2 py-0.5 rounded-[6px] bg-[#D4A017] text-white text-[10px] font-bold">Menipis</span>
-                            ) : (
-                              <span className="px-2 py-0.5 rounded-[6px] bg-[#3F7D4F] text-white text-[10px] font-bold">Aman</span>
-                            )}
-                          </td>
-                          <td className="p-3.5 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <button
-                                onClick={() => setAdjustingProduct(prod)}
-                                className="px-2.5 py-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FEF3C7] border border-[#E8E2D8] text-[#D97706] text-[11px] font-bold transition-all flex items-center gap-1"
-                                title="Edit Nama, Harga, Barcode, & Stok Barang"
-                              >
-                                <Pencil className="w-3.5 h-3.5" />
-                                <span>Edit</span>
-                              </button>
-                              <button
-                                onClick={() => handleDeleteProduct(prod)}
-                                className="px-2.5 py-1.5 rounded-lg bg-[#FDF2F0] hover:bg-[#B84B3E] hover:text-white border border-[#B84B3E]/30 text-[#B84B3E] text-[11px] font-bold transition-all flex items-center gap-1"
-                                title="Hapus Produk dari Master Stok Warung"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span>Hapus</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+                        return (
+                          <tr key={prod.id} className="hover:bg-[#FAF7F2] transition-all">
+                            <td className="p-3.5 font-bold text-[#2A2622]">{prod.name}</td>
+                            <td className="p-3.5 font-mono text-[#D97706]">{prod.barcode || '-'}</td>
+                            <td className="p-3.5 text-[#8A8175]">Rp {prod.cost_price.toLocaleString('id-ID')}</td>
+                            <td className="p-3.5 font-bold text-[#2A2622]">Rp {prod.price.toLocaleString('id-ID')}</td>
+                            <td className="p-3.5 text-[#3F7D4F] font-semibold">+{totalIn}</td>
+                            <td className="p-3.5 text-[#B84B3E] font-semibold">-{totalOut}</td>
+                            <td className="p-3.5 font-bold text-[#2A2622]">{prod.stock} {prod.unit}</td>
+                            <td className="p-3.5">
+                              {isOut ? (
+                                <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white text-[10px] font-bold">Habis</span>
+                              ) : isLow ? (
+                                <span className="px-2 py-0.5 rounded-[6px] bg-[#D4A017] text-white text-[10px] font-bold">Menipis</span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-[6px] bg-[#3F7D4F] text-white text-[10px] font-bold">Aman</span>
+                              )}
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => setAdjustingProduct(prod)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FEF3C7] border border-[#E8E2D8] text-[#D97706] text-[11px] font-bold transition-all flex items-center gap-1"
+                                  title="Edit Nama, Harga, Barcode, & Stok Barang"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                  <span>Edit</span>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteProduct(prod)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-[#FDF2F0] hover:bg-[#B84B3E] hover:text-white border border-[#B84B3E]/30 text-[#B84B3E] text-[11px] font-bold transition-all flex items-center gap-1"
+                                  title="Hapus Produk dari Master Stok Warung"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <span>Hapus</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
+
+            {/* 2. IPAD 10 & MOBILE TOUCHSCREEN VIEW: Modern Swipeable Card List */}
+            <div className="lg:hidden space-y-2.5">
+              <div className="flex items-center justify-between px-1 text-xs text-[#8A8175]">
+                <span className="font-bold text-[#2A2622]">Daftar Produk ({filteredProducts.length})</span>
+                <span className="flex items-center gap-1 text-[11px] text-[#D97706] font-bold bg-[#FEF3C7] px-2.5 py-1 rounded-lg border border-[#D97706]/30">
+                  💡 Geser (swipe) kartu ke kiri untuk Edit / Hapus
+                </span>
+              </div>
+
+              {paginatedProducts.length === 0 ? (
+                <div className="paper-panel rounded-xl p-8 text-center text-[#8A8175] space-y-2 bg-white border border-[#E8E2D8]">
+                  <p className="font-bold text-sm text-[#2A2622]">Belum ada produk di kategori terpilih</p>
+                  <p className="text-xs text-[#8A8175]">Kategori ini belum memiliki daftar barang di master stok toko.</p>
+                  <button
+                    onClick={() => setAddProductModalOpen(true)}
+                    className="mt-2 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] text-white text-xs font-bold shadow-xs hover:bg-[#B45309] transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Produk Baru</span>
+                  </button>
+                </div>
+              ) : (
+                paginatedProducts.map((prod) => {
+                  const isOut = prod.stock <= 0;
+                  const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
+
+                  const itemMovements = movements.filter((m) => m.product_id === prod.id);
+                  const totalIn = itemMovements
+                    .filter((m) => m.delta > 0)
+                    .reduce((sum, m) => sum + m.delta, 0);
+                  const totalOut = itemMovements
+                    .filter((m) => m.delta < 0)
+                    .reduce((sum, m) => sum + Math.abs(m.delta), 0);
+
+                  return (
+                    <SwipeableStockCard
+                      key={prod.id}
+                      prod={prod}
+                      totalIn={totalIn}
+                      totalOut={totalOut}
+                      isOut={isOut}
+                      isLow={isLow}
+                      onEdit={() => setAdjustingProduct(prod)}
+                      onDelete={() => handleDeleteProduct(prod)}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
 
             {/* Pagination Controls Bar */}
             {filteredProducts.length > 0 && (
@@ -460,8 +627,7 @@ export const StockReportPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
-      )}
+        )}
 
       {/* SUB TAB 2: Movements Log */}
       {activeSubTab === 'movements' && (
