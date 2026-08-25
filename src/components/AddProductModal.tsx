@@ -294,48 +294,57 @@ export const AddProductModal: React.FC = () => {
             </div>
           </div>
 
-          {/* Barcode Field with Auto-Generate & Open Food Facts Lookup Buttons */}
+          {/* Barcode Field with Open Food Facts Lookup Button */}
           <div>
             <div className="flex items-center justify-between mb-1 flex-wrap gap-1">
-              <label className="block text-xs font-semibold text-[#2A2622]">Barcode Pabrik / Kode Unik</label>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={handleGenerateBarcode}
-                  className="text-[11px] font-bold text-[#059669] bg-[#E6F4EA] hover:bg-[#059669] hover:text-white px-2 py-0.5 rounded-lg border border-[#059669]/30 flex items-center gap-1 transition-all"
-                  title="Generate Barcode 13 Digit Unik secara otomatis (Tidak perlu scan)"
-                >
-                  <Sparkles className="w-3 h-3 text-[#059669]" />
-                  <span>🎲 Generate Barcode</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFetchOpenFoodFacts}
-                  disabled={isFetchingOFF || !barcode.trim()}
-                  className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
-                  title="Cari Foto & Nama Produk dari Barcode"
-                >
-                  {isFetchingOFF ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                  <span>Cari via Barcode</span>
-                </button>
-              </div>
+              <label className="block text-xs font-semibold text-[#2A2622]">Barcode Pabrik / Kode Unik (Opsional)</label>
+              <button
+                type="button"
+                onClick={handleFetchOpenFoodFacts}
+                disabled={isFetchingOFF || !barcode.trim()}
+                className="text-[11px] font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-2 py-0.5 rounded-lg border border-[#D97706]/30 flex items-center gap-1 transition-all disabled:opacity-50"
+                title="Cari Foto & Nama Produk dari Barcode"
+              >
+                {isFetchingOFF ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                <span>Cari via Barcode</span>
+              </button>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <input
-                type="text"
-                value={barcode}
-                onChange={(e) => setBarcode(e.target.value)}
-                placeholder="Kosongkan untuk auto-generate (200...)"
-                className="col-span-2 bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
-              />
+            <input
+              type="text"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              placeholder="Arahkan scanner Bluetooth atau ketik kode barcode (Misal: 899...)"
+              data-barcode-input="true"
+              className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
+            />
+          </div>
+
+          {/* DEDICATED PROMINENT STOK AWAL BARANG INPUT FIELD */}
+          <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-[#D97706]/30 space-y-1.5 shadow-xs">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-extrabold text-[#2A2622] flex items-center gap-1.5">
+                <PackagePlus className="w-4 h-4 text-[#D97706]" />
+                <span>Jumlah Total Stok Awal Barang *</span>
+              </label>
+              <span className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider bg-[#FEF3C7] px-2 py-0.5 rounded border border-[#D97706]/30">
+                Stok Toko
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
               <input
                 type="number"
+                required
+                min="0"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                placeholder="Stok (10)"
-                className="bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                placeholder="Misal: 10 atau 50"
+                className="w-full bg-white border border-[#D97706]/50 rounded-xl px-4 py-2.5 text-sm font-black text-[#2A2622] focus:outline-none focus:border-[#D97706] shadow-xs"
               />
+              <span className="text-xs font-bold text-[#8A8175] px-2 shrink-0">{unit}</span>
             </div>
+            <p className="text-[10px] text-[#8A8175]">
+              Jumlah fisik unit barang yang siap dijual di warung saat ini (Stok Awal).
+            </p>
           </div>
 
           {/* Product Image URL Field & Live Preview */}

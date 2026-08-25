@@ -114,8 +114,8 @@ export const DashboardPage: React.FC = () => {
   const totalOrdersCount = filteredOrders.length;
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Estimasi Profit Kotor (25% margin standar warung) & Profit Bersih
-  const estimatedGrossProfit = filteredOrders.reduce((sum, o) => sum + (o.subtotal * 0.25), 0);
+  // Estimasi Profit Kotor (10% margin standar warung) & Profit Bersih
+  const estimatedGrossProfit = filteredOrders.reduce((sum, o) => sum + (o.subtotal * 0.10), 0);
   const netProfit = estimatedGrossProfit - totalExpenses;
 
   // Chart Data preparation (Group by Date)
@@ -247,7 +247,7 @@ export const DashboardPage: React.FC = () => {
             </h2>
             <p className="text-[11px] text-[#059669] font-bold flex items-center gap-1 mt-1">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Est. Margin 25% Omset</span>
+              <span>Est. Margin 10% Omset</span>
             </p>
           </div>
         </div>

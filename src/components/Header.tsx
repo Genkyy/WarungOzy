@@ -7,7 +7,9 @@ export const Header: React.FC = () => {
     searchQuery,
     setSearchQuery,
     fetchMasterData,
-    setCameraScannerOpen
+    setCameraScannerOpen,
+    setBluetoothModalOpen,
+    scannerConnectionStatus
   } = usePOSStore();
 
   useEffect(() => {
@@ -20,6 +22,9 @@ export const Header: React.FC = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const isConnected = scannerConnectionStatus === 'connected';
+  const isStandby = scannerConnectionStatus === 'standby';
 
   return (
     <header className="h-16 bg-white border-b border-[#E8E2D8] px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 z-10 shrink-0 select-none shadow-sm">
@@ -36,12 +41,12 @@ export const Header: React.FC = () => {
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1.5">
           <button
-            onClick={() => setCameraScannerOpen(true)}
+            onClick={() => setBluetoothModalOpen(true)}
             className="px-2 py-1 rounded-lg bg-[#FEF3C7] hover:bg-[#D97706] text-[#D97706] hover:text-white text-[11px] font-bold flex items-center gap-1 transition-all border border-[#D97706]/30"
-            title="Scan lewat kamera tablet"
+            title="Uji coba & konfigurasi Scanner Bluetooth"
           >
-            <Camera className="w-3.5 h-3.5" />
-            <span>Kamera</span>
+            <Barcode className="w-3.5 h-3.5" />
+            <span>Scanner BT</span>
           </button>
           <kbd className="bg-white text-[#8A8175] text-[10px] px-1.5 py-0.5 rounded font-mono border border-[#E8E2D8]">
             Ctrl+K
@@ -51,30 +56,56 @@ export const Header: React.FC = () => {
 
       {/* Hardware Device Status Indicators */}
       <div className="flex items-center gap-1.5 sm:gap-2">
-        {/* 1. Barcode Scanner Hardware Status */}
-        <div
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] text-xs font-medium text-[#2A2622]"
-          title="Status Barcode Scanner: Terhubung & Siap Pindai"
+        {/* 1. Dynamic Barcode Scanner Connection Status Badge */}
+        <button
+          onClick={() => setBluetoothModalOpen(true)}
+          className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
+            isConnected
+              ? 'bg-[#F0FDF4] border-[#DCFCE7] text-[#15803D] hover:border-[#16A34A]'
+              : isStandby
+              ? 'bg-[#FEF3C7] border-[#FDE68A] text-[#D97706] hover:border-[#D97706]'
+              : 'bg-[#FDF2F0] border-[#F87171]/30 text-[#B84B3E] hover:border-[#B84B3E]'
+          }`}
+          title={`Status Scanner Bluetooth: ${
+            isConnected
+              ? '🟢 Terhubung & Siap Pindai'
+              : isStandby
+              ? '🟡 Standby / Siap'
+              : '🔴 Terputus / Nonaktif'
+          } (Klik untuk Kelola)`}
         >
           <div className="relative flex items-center justify-center">
-            <span className="w-2 h-2 rounded-full bg-[#3F7D4F] animate-pulse"></span>
+            {isConnected ? (
+              <>
+                <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-ping absolute opacity-75"></span>
+                <span className="w-2 h-2 rounded-full bg-[#16A34A] relative"></span>
+              </>
+            ) : isStandby ? (
+              <span className="w-2 h-2 rounded-full bg-[#D97706]"></span>
+            ) : (
+              <span className="w-2 h-2 rounded-full bg-[#B84B3E]"></span>
+            )}
           </div>
-          <Barcode className="w-4 h-4 text-[#3F7D4F]" />
-          <span className="hidden sm:inline text-[11px] font-bold text-[#3F7D4F]">Scanner Ready</span>
-          <span className="sm:hidden text-[10px] text-[#3F7D4F] font-bold">Scanner</span>
-        </div>
+          <Barcode className={`w-4 h-4 ${isConnected ? 'text-[#16A34A]' : isStandby ? 'text-[#D97706]' : 'text-[#B84B3E]'}`} />
+          <span className="hidden sm:inline text-[11px] font-bold">
+            {isConnected ? 'BT Scanner Con.' : isStandby ? 'BT Scanner Standby' : 'BT Scanner Off'}
+          </span>
+          <span className="sm:hidden text-[10px] font-bold">
+            {isConnected ? 'BT Con' : isStandby ? 'BT Standby' : 'BT Off'}
+          </span>
+        </button>
 
-        {/* 2. Printer Mini Thermal Status */}
+        {/* 2. Printer Mini Thermal Status (Realistic Standby / Disconnected Indicator) */}
         <div
-          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] text-xs font-medium text-[#2A2622]"
-          title="Status Mesin Cetak Struk Mini 58mm: Terhubung & Siap Cetak"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E8E2D8] text-xs font-medium text-[#8A8175]"
+          title="Status Mesin Cetak Struk Mini 58mm: Belum Terhubung (Standby / Off)"
         >
           <div className="relative flex items-center justify-center">
-            <span className="w-2 h-2 rounded-full bg-[#3F7D4F] animate-pulse"></span>
+            <span className="w-2 h-2 rounded-full bg-[#8A8175]"></span>
           </div>
-          <Printer className="w-4 h-4 text-[#3F7D4F]" />
-          <span className="hidden sm:inline text-[11px] font-bold text-[#3F7D4F]">Printer 58mm</span>
-          <span className="sm:hidden text-[10px] text-[#3F7D4F] font-bold">Printer</span>
+          <Printer className="w-4 h-4 text-[#8A8175]" />
+          <span className="hidden sm:inline text-[11px] font-bold text-[#8A8175]">Printer Standby</span>
+          <span className="sm:hidden text-[10px] text-[#8A8175] font-bold">Printer Off</span>
         </div>
 
         {/* Sync/Refresh Data Button */}

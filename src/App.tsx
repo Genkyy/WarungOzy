@@ -7,6 +7,7 @@ import { Toast } from './components/Toast';
 import { PaymentModal } from './components/PaymentModal';
 import { ReceiptModal } from './components/ReceiptModal';
 import { CameraScannerModal } from './components/CameraScannerModal';
+import { BluetoothScannerModal } from './components/BluetoothScannerModal';
 import { AddProductModal } from './components/AddProductModal';
 import { ConfirmModal } from './components/ConfirmModal';
 import { SplashScreen } from './components/SplashScreen';
@@ -66,6 +67,7 @@ export const App: React.FC = () => {
         <PaymentModal />
         <ReceiptModal />
         <CameraScannerModal />
+        <BluetoothScannerModal />
         <AddProductModal />
         <ConfirmModal />
         <Toast />

@@ -13,17 +13,38 @@ import {
   ChevronRight,
   Filter,
   Sparkles,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 
 export const StockReportPage: React.FC = () => {
-  const { products, fetchMasterData, setAddProductModalOpen, showToast } = usePOSStore();
+  const { products, fetchMasterData, setAddProductModalOpen, showToast, showConfirm } = usePOSStore();
   const lowStockThreshold = 5;
   const [activeSubTab, setActiveSubTab] = useState<'inventory' | 'movements'>('inventory');
   const [searchQuery, setSearchQuery] = useState('');
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [adjustingProduct, setAdjustingProduct] = useState<MenuItem | null>(null);
   const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);
+
+  const handleDeleteProduct = (prod: MenuItem) => {
+    showConfirm({
+      title: 'Hapus Produk dari Master Stok',
+      message: `PERINGATAN: Apakah Anda yakin ingin menghapus produk "${prod.name}" (Barcode: ${prod.barcode || '-'}) dari master stok toko? Produk ini tidak dapat dipindai lagi di kasir.`,
+      type: 'danger',
+      confirmText: 'Ya, Hapus Produk',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        try {
+          await repository.deleteMenuItem(prod.id!);
+          await fetchMasterData();
+          showToast(`Produk '${prod.name}' berhasil dihapus dari stok!`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal menghapus produk', 'error');
+        }
+      }
+    });
+  };
 
   // Fast Filter State for Summary Cards ('all' | 'low' | 'out')
   const [stockFilter, setStockFilter] = useState<'all' | 'low' | 'out'>('all');
@@ -322,13 +343,24 @@ export const StockReportPage: React.FC = () => {
                             )}
                           </td>
                           <td className="p-3.5 text-right">
-                            <button
-                              onClick={() => setAdjustingProduct(prod)}
-                              className="px-3 py-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#E8E2D8] border border-[#E8E2D8] text-[#D97706] text-[11px] font-bold transition-all"
-                            >
-                              <ArrowUpDown className="w-3.5 h-3.5 inline mr-1" />
-                              Adjust Stok
-                            </button>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setAdjustingProduct(prod)}
+                                className="px-2.5 py-1.5 rounded-lg bg-[#FAF7F2] hover:bg-[#FEF3C7] border border-[#E8E2D8] text-[#D97706] text-[11px] font-bold transition-all flex items-center gap-1"
+                                title="Atur Penambahan / Pengurangan Stok"
+                              >
+                                <ArrowUpDown className="w-3.5 h-3.5" />
+                                <span>Adjust</span>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProduct(prod)}
+                                className="px-2.5 py-1.5 rounded-lg bg-[#FDF2F0] hover:bg-[#B84B3E] hover:text-white border border-[#B84B3E]/30 text-[#B84B3E] text-[11px] font-bold transition-all flex items-center gap-1"
+                                title="Hapus Produk dari Master Stok Warung"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Hapus</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

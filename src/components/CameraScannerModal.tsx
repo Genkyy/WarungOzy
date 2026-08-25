@@ -2,10 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/indexedDBRepository';
+import { audioBeep } from '../utils/audioBeep';
 import { X, Camera, AlertCircle } from 'lucide-react';
 
 export const CameraScannerModal: React.FC = () => {
-  const { isCameraScannerOpen, setCameraScannerOpen, addToCart, showToast } = usePOSStore();
+  const { isCameraScannerOpen, setCameraScannerOpen, addToCart, setActiveTab, showToast, settings } = usePOSStore();
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
@@ -33,10 +34,19 @@ export const CameraScannerModal: React.FC = () => {
               const product = await repository.findProductByBarcode(decodedText);
               if (product) {
                 addToCart(product, 1);
-                showToast(`Barcode Scanned: ${product.name}`, 'success');
+                setActiveTab('pos');
+
+                if (settings.scanner_beep_sound !== 'false') {
+                  audioBeep.playBeep('success');
+                }
+
+                showToast(`+1 ${product.name} dimasukkan ke Keranjang POS`, 'success');
                 stopScanner();
                 setCameraScannerOpen(false);
               } else {
+                if (settings.scanner_beep_sound !== 'false') {
+                  audioBeep.playBeep('error');
+                }
                 showToast(`Barcode '${decodedText}' tidak ditemukan`, 'error');
                 setTimeout(() => {
                   isScanning = true;

@@ -105,6 +105,9 @@ export interface StoreSettings {
   currency: string;
   receipt_footer: string;
   low_stock_threshold: string;
+  enable_bluetooth_scanner?: string; // 'true' | 'false'
+  scanner_beep_sound?: string; // 'true' | 'false'
+  scanner_max_delay?: string; // ms delay, default '80'
 }
 
 export interface CartItem {
@@ -112,3 +115,15 @@ export interface CartItem {
   quantity: number;
   notes?: string;
 }
+
+export interface ScannedBarcodeLog {
+  barcode: string;
+  timestamp: number;
+  success: boolean;
+  productName?: string;
+  scanSpeedMs?: number;
+}
+
+export type BluetoothScannerStatus = 'connected' | 'standby' | 'disconnected';
+
+

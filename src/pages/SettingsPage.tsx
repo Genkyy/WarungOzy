@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/indexedDBRepository';
-import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText } from 'lucide-react';
+import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText, Bluetooth, Sliders } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-  const { settings, fetchMasterData, showToast, showConfirm } = usePOSStore();
+  const { settings, fetchMasterData, showToast, showConfirm, setBluetoothModalOpen, scannerConnectionStatus } = usePOSStore();
 
   const [outletName, setOutletName] = useState(settings.outlet_name);
   const [taxRate, setTaxRate] = useState(settings.tax_rate);
@@ -128,6 +128,39 @@ export const SettingsPage: React.FC = () => {
               onChange={(e) => setReceiptFooter(e.target.value)}
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
+          </div>
+
+          {/* Bluetooth & Hardware Scanner Settings Card */}
+          <div className="pt-4 border-t border-[#E8E2D8] space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-sm font-bold text-[#2A2622] flex items-center gap-2">
+                <Bluetooth className="w-4 h-4 text-[#D97706]" />
+                <span>Perangkat Scanner Bluetooth & Barcode</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1 ${
+                  scannerConnectionStatus === 'connected'
+                    ? 'bg-[#F0FDF4] border-[#DCFCE7] text-[#15803D]'
+                    : scannerConnectionStatus === 'standby'
+                    ? 'bg-[#FEF3C7] border-[#FDE68A] text-[#D97706]'
+                    : 'bg-[#FDF2F0] border-[#F87171]/30 text-[#B84B3E]'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${
+                    scannerConnectionStatus === 'connected' ? 'bg-[#16A34A] animate-pulse' : scannerConnectionStatus === 'standby' ? 'bg-[#D97706]' : 'bg-[#B84B3E]'
+                  }`}></span>
+                  <span>{scannerConnectionStatus === 'connected' ? 'Connected' : scannerConnectionStatus === 'standby' ? 'Standby' : 'Off'}</span>
+                </span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => setBluetoothModalOpen(true)}
+                className="text-xs font-bold text-[#D97706] bg-[#FEF3C7] hover:bg-[#D97706] hover:text-white px-3 py-1.5 rounded-xl border border-[#D97706]/30 flex items-center gap-1.5 transition-all shadow-xs"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Uji Coba & Konfigurasi Scanner</span>
+              </button>
+            </div>
+            <p className="text-xs text-[#8A8175]">
+              WarungOzy mendukung pemindai nirkabel Bluetooth HID (Keyboard Wedge) dan USB Barcode Gun. Saat barcode dipindai, produk otomatis masuk keranjang POS disertai suara bip khas kasir.
+            </p>
           </div>
 
           {/* Solid Amber Sticky Save Button (desain.md 5.5) */}

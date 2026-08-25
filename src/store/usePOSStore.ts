@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { MenuItem, CartItem, Order, Category, StoreSettings } from '../types';
+import { MenuItem, CartItem, Order, Category, StoreSettings, ScannedBarcodeLog, BluetoothScannerStatus } from '../types';
 import { repository } from '../services/indexedDBRepository';
 
 interface POSState {
@@ -48,6 +48,16 @@ interface POSState {
   setCameraScannerOpen: (open: boolean) => void;
   isAddProductModalOpen: boolean;
   setAddProductModalOpen: (open: boolean) => void;
+  isBluetoothModalOpen: boolean;
+  setBluetoothModalOpen: (open: boolean) => void;
+
+  // Bluetooth & Hardware Scanner Live Log & Status State
+  lastScannedBarcode: ScannedBarcodeLog | null;
+  setLastScannedBarcode: (log: ScannedBarcodeLog | null) => void;
+  scannerConnectionStatus: BluetoothScannerStatus;
+  setScannerConnectionStatus: (status: BluetoothScannerStatus) => void;
+  scannerDeviceName: string;
+  setScannerDeviceName: (name: string) => void;
 
   // Last Completed Order for Struk
   lastCompletedOrder: Order | null;
@@ -93,7 +103,10 @@ export const usePOSStore = create<POSState>((set, get) => ({
     tax_rate: '0',
     currency: 'IDR',
     receipt_footer: 'Terima kasih telah berbelanja di Warung Ozy!',
-    low_stock_threshold: '5'
+    low_stock_threshold: '5',
+    enable_bluetooth_scanner: 'true',
+    scanner_beep_sound: 'true',
+    scanner_max_delay: '80'
   },
   isLoading: false,
 
@@ -111,7 +124,10 @@ export const usePOSStore = create<POSState>((set, get) => ({
         tax_rate: rawSettings.tax_rate || '0',
         currency: rawSettings.currency || 'IDR',
         receipt_footer: rawSettings.receipt_footer || 'Terima kasih telah berbelanja di Warung Ozy!',
-        low_stock_threshold: rawSettings.low_stock_threshold || '5'
+        low_stock_threshold: rawSettings.low_stock_threshold || '5',
+        enable_bluetooth_scanner: rawSettings.enable_bluetooth_scanner ?? 'true',
+        scanner_beep_sound: rawSettings.scanner_beep_sound ?? 'true',
+        scanner_max_delay: rawSettings.scanner_max_delay || '80'
       };
 
       set({
@@ -220,6 +236,17 @@ export const usePOSStore = create<POSState>((set, get) => ({
 
   isAddProductModalOpen: false,
   setAddProductModalOpen: (open) => set({ isAddProductModalOpen: open }),
+
+  isBluetoothModalOpen: false,
+  setBluetoothModalOpen: (open) => set({ isBluetoothModalOpen: open }),
+
+  lastScannedBarcode: null,
+  setLastScannedBarcode: (log) => set({ lastScannedBarcode: log }),
+
+  scannerConnectionStatus: 'connected',
+  setScannerConnectionStatus: (status) => set({ scannerConnectionStatus: status }),
+  scannerDeviceName: 'Bluetooth Barcode Scanner (HID)',
+  setScannerDeviceName: (name) => set({ scannerDeviceName: name }),
 
   lastCompletedOrder: null,
   setLastCompletedOrder: (order) => set({ lastCompletedOrder: order }),

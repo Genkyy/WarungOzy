@@ -10,6 +10,8 @@ export const ExpensesPage: React.FC = () => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<Expense['category']>('belanja_barang');
+  const [itemUnit, setItemUnit] = useState('Dus');
+  const [itemQty, setItemQty] = useState('');
   const [expenseDate, setExpenseDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +32,12 @@ export const ExpensesPage: React.FC = () => {
       return;
     }
 
+    let finalNotes = notes.trim();
+    if (category === 'belanja_barang' && itemUnit) {
+      const unitInfo = itemQty.trim() ? `${itemQty} ${itemUnit}` : itemUnit;
+      finalNotes = finalNotes ? `${finalNotes} | Satuan: ${unitInfo}` : `Satuan: ${unitInfo}`;
+    }
+
     setIsSubmitting(true);
     try {
       await repository.createExpense({
@@ -37,12 +45,13 @@ export const ExpensesPage: React.FC = () => {
         description: description.trim(),
         amount: parseFloat(amount) || 0,
         expense_date: expenseDate,
-        notes: notes.trim()
+        notes: finalNotes
       });
 
       showToast('Pengeluaran berhasil dicatat!', 'success');
       setDescription('');
       setAmount('');
+      setItemQty('');
       setNotes('');
       await loadExpenses();
     } catch (err) {
@@ -114,6 +123,42 @@ export const ExpensesPage: React.FC = () => {
                 <option value="lainnya">Pengeluaran Lainnya</option>
               </select>
             </div>
+
+            {/* Dynamic Unit Dropdown & Quantity for Kulakan / Belanja Stok Barang */}
+            {category === 'belanja_barang' && (
+              <div className="p-3 rounded-xl bg-[#FEF3C7]/50 border border-[#D97706]/30 space-y-2 animate-fadeIn">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#D97706] mb-1">Tipe Satuan Barang</label>
+                    <select
+                      value={itemUnit}
+                      onChange={(e) => setItemUnit(e.target.value)}
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                    >
+                      {['Dus', 'Renteng', 'Kg', 'Pcs', 'Botol', 'Liter', 'Bal', 'Karung', 'Bungkus', 'Karton'].map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#D97706] mb-1">Jumlah Kuantitas</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={itemQty}
+                      onChange={(e) => setItemQty(e.target.value)}
+                      placeholder="Misal: 5"
+                      className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#8A8175]">
+                  Pilih tipe satuan barang kulakan warung (Dus, Renteng, Kg, dll).
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-[#2A2622] mb-1">Keterangan Pengeluaran *</label>
