@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { usePOSStore } from '../store/usePOSStore';
 import { openFoodFactsService } from '../services/openFoodFactsService';
 import { MenuItem } from '../types';
@@ -16,7 +16,7 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, onC
   const { categories, showToast, showConfirm, fetchMasterData } = usePOSStore();
 
   const [name, setName] = useState(product.name);
-  const [categoryId, setCategoryId] = useState<number>(product.category_id);
+  const [categoryId, setCategoryId] = useState<number | string>(product.category_id);
   const [price, setPrice] = useState<string>(formatRupiah(product.price, true));
   const [costPrice, setCostPrice] = useState<string>(product.cost_price ? formatRupiah(product.cost_price, true) : '');
   const [barcode, setBarcode] = useState(product.barcode || '');

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { X, Banknote, QrCode, Wallet, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 

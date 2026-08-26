@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
-import { repository } from '../services/indexedDBRepository';
-import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText, Bluetooth, Sliders, QrCode, Download, Upload } from 'lucide-react';
+import { repository } from '../services/supabaseRepository';
+import { repository as indexedDBRepository } from '../services/indexedDBRepository';
+import { Settings, Save, RotateCcw, Store, Percent, AlertCircle, FileText, Bluetooth, Sliders, QrCode, Download, Upload, Database } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { settings, fetchMasterData, showToast, showConfirm, setBluetoothModalOpen, scannerConnectionStatus } = usePOSStore();
@@ -96,6 +97,27 @@ export const SettingsPage: React.FC = () => {
           }
         };
         reader.readAsText(file);
+      }
+    });
+  };
+
+  const handleMigrateIndexedDBToSupabase = () => {
+    showConfirm({
+      title: 'Migrasikan Data dari IndexedDB ke Supabase',
+      message: 'Apakah Anda yakin ingin memindahkan seluruh data produk, transaksi, dan stok dari IndexedDB lokal ke Supabase (Cloud)? Data di Supabase akan diperbarui sesuai data lokal saat ini.',
+      type: 'warning',
+      confirmText: 'Ya, Migrasikan ke Supabase',
+      cancelText: 'Batal',
+      onConfirm: async () => {
+        try {
+          const jsonStr = await indexedDBRepository.exportDatabaseJSON();
+          await repository.importDatabaseJSON(jsonStr);
+          await fetchMasterData();
+          showToast('Seluruh data dari IndexedDB berhasil dipindahkan ke Supabase Cloud! ☁️', 'success');
+        } catch (err: any) {
+          console.error(err);
+          showToast(`Gagal memindahkan data ke Supabase: ${err.message || 'Error'}`, 'error');
+        }
       }
     });
   };
@@ -269,6 +291,16 @@ export const SettingsPage: React.FC = () => {
                 className="hidden"
               />
             </label>
+
+            <button
+              type="button"
+              onClick={handleMigrateIndexedDBToSupabase}
+              className="px-4 py-2.5 rounded-xl bg-[#EFF6FF] hover:bg-[#2563EB] text-[#2563EB] hover:text-white border border-[#2563EB]/30 font-bold text-xs flex items-center gap-2 transition-all min-h-[42px]"
+              title="Salin seluruh data lokal IndexedDB browser saat ini ke database Supabase Cloud"
+            >
+              <Database className="w-4 h-4" />
+              <span>Migrasikan Data dari IndexedDB ke Supabase</span>
+            </button>
           </div>
         </div>
 

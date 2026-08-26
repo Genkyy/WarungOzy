@@ -1,5 +1,5 @@
 export interface Category {
-  id?: number;
+  id?: number | string;
   name: string;
   icon: string;
   sort_order: number;
@@ -8,8 +8,8 @@ export interface Category {
 }
 
 export interface MenuItem {
-  id?: number;
-  category_id: number;
+  id?: number | string;
+  category_id: number | string;
   name: string;
   description?: string;
   price: number;
@@ -24,9 +24,9 @@ export interface MenuItem {
 }
 
 export interface OrderItem {
-  id?: number;
-  order_id?: number;
-  menu_item_id: number;
+  id?: number | string;
+  order_id?: number | string;
+  menu_item_id: number | string;
   product_name?: string;
   quantity: number;
   unit_price: number;
@@ -35,8 +35,8 @@ export interface OrderItem {
 }
 
 export interface Payment {
-  id?: number;
-  order_id?: number;
+  id?: number | string;
+  order_id?: number | string;
   method: 'cash' | 'qris' | 'ewallet' | 'card';
   amount: number;
   change_amount: number;
@@ -45,7 +45,7 @@ export interface Payment {
 }
 
 export interface Order {
-  id?: number;
+  id?: number | string;
   order_number: string;
   customer_name?: string;
   order_type: 'retail';
@@ -64,7 +64,7 @@ export interface CreateOrderDTO {
   customer_name?: string;
   order_type?: 'retail';
   items: Array<{
-    menu_item_id: number;
+    menu_item_id: number | string;
     quantity: number;
     unit_price: number;
     notes?: string;
@@ -80,17 +80,17 @@ export interface CreateOrderDTO {
 }
 
 export interface StockMovement {
-  id?: number;
-  product_id: number;
+  id?: number | string;
+  product_id: number | string;
   product_name?: string;
   delta: number;
   reason: 'sale' | 'adjustment_in' | 'adjustment_out' | 'return' | 'initial';
-  order_id?: number;
+  order_id?: number | string;
   created_at: string;
 }
 
 export interface Expense {
-  id?: number;
+  id?: number | string;
   category: 'belanja_barang' | 'operasional' | 'gaji' | 'lainnya';
   description: string;
   amount: number;

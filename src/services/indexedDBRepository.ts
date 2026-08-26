@@ -300,10 +300,10 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   // Products
-  async getMenuItems(categoryId?: number): Promise<MenuItem[]> {
+  async getMenuItems(categoryId?: number | string): Promise<MenuItem[]> {
     await this.seedDatabaseIfNeeded();
-    if (categoryId && categoryId > 0) {
-      return db.menuItems.where('category_id').equals(categoryId).toArray();
+    if (categoryId && Number(categoryId) > 0) {
+      return db.menuItems.where('category_id').equals(Number(categoryId)).toArray();
     }
     return db.menuItems.toArray();
   }
@@ -344,12 +344,12 @@ export class IndexedDBRepository implements DatabaseRepository {
     return { ...product, id };
   }
 
-  async updateMenuItem(id: number, product: Partial<MenuItem>): Promise<void> {
-    await db.menuItems.update(id, product);
+  async updateMenuItem(id: number | string, product: Partial<MenuItem>): Promise<void> {
+    await db.menuItems.update(Number(id), product);
   }
 
-  async deleteMenuItem(id: number): Promise<void> {
-    await db.menuItems.delete(id);
+  async deleteMenuItem(id: number | string): Promise<void> {
+    await db.menuItems.delete(Number(id));
   }
 
   // Orders
@@ -390,13 +390,13 @@ export class IndexedDBRepository implements DatabaseRepository {
           subtotal: itemSubtotal,
           notes: item.notes || ''
         };
-        const itemId = await db.orderItems.add(itemObj);
+        const itemId = await db.orderItems.add(itemObj as OrderItem);
         orderItemsToInsert.push({ ...itemObj, id: itemId });
 
-        const prod = await db.menuItems.get(item.menu_item_id);
+        const prod = await db.menuItems.get(Number(item.menu_item_id));
         if (prod) {
           const newStock = Math.max(0, prod.stock - item.quantity);
-          await db.menuItems.update(item.menu_item_id, { stock: newStock });
+          await db.menuItems.update(Number(item.menu_item_id), { stock: newStock });
 
           await db.stockMovements.add({
             product_id: item.menu_item_id,
@@ -417,7 +417,7 @@ export class IndexedDBRepository implements DatabaseRepository {
         reference_number: orderData.payment.reference_number || '',
         created_at: new Date().toISOString()
       };
-      const paymentId = await db.payments.add(paymentObj);
+      const paymentId = await db.payments.add(paymentObj as Payment);
 
       return {
         ...orderObj,
@@ -437,16 +437,16 @@ export class IndexedDBRepository implements DatabaseRepository {
     return query.sortBy('created_at');
   }
 
-  async getOrderDetails(orderId: number): Promise<{ order: Order; items: OrderItem[]; payment?: Payment } | null> {
-    const order = await db.orders.get(orderId);
+  async getOrderDetails(orderId: number | string): Promise<{ order: Order; items: OrderItem[]; payment?: Payment } | null> {
+    const order = await db.orders.get(Number(orderId));
     if (!order) return null;
 
-    const rawItems = await db.orderItems.where('order_id').equals(orderId).toArray();
-    const payment = await db.payments.where('order_id').equals(orderId).first();
+    const rawItems = await db.orderItems.where('order_id').equals(Number(orderId)).toArray();
+    const payment = await db.payments.where('order_id').equals(Number(orderId)).first();
 
     const items: OrderItem[] = [];
     for (const item of rawItems) {
-      const prod = await db.menuItems.get(item.menu_item_id);
+      const prod = await db.menuItems.get(Number(item.menu_item_id));
       items.push({
         ...item,
         product_name: prod ? prod.name : `Produk #${item.menu_item_id}`
@@ -456,23 +456,23 @@ export class IndexedDBRepository implements DatabaseRepository {
     return { order, items, payment };
   }
 
-  async updateOrderStatus(id: number, status: 'completed' | 'cancelled'): Promise<void> {
-    await db.orders.update(id, { status });
+  async updateOrderStatus(id: number | string, status: 'completed' | 'cancelled'): Promise<void> {
+    await db.orders.update(Number(id), { status });
   }
 
-  async voidOrder(id: number): Promise<void> {
+  async voidOrder(id: number | string): Promise<void> {
     return db.transaction('rw', [db.orders, db.orderItems, db.menuItems, db.stockMovements], async () => {
-      const order = await db.orders.get(id);
+      const order = await db.orders.get(Number(id));
       if (!order || order.status === 'cancelled') return;
 
-      await db.orders.update(id, { status: 'cancelled' });
+      await db.orders.update(Number(id), { status: 'cancelled' });
 
-      const items = await db.orderItems.where('order_id').equals(id).toArray();
+      const items = await db.orderItems.where('order_id').equals(Number(id)).toArray();
       for (const item of items) {
-        const prod = await db.menuItems.get(item.menu_item_id);
+        const prod = await db.menuItems.get(Number(item.menu_item_id));
         if (prod) {
           const restoredStock = prod.stock + item.quantity;
-          await db.menuItems.update(item.menu_item_id, { stock: restoredStock });
+          await db.menuItems.update(Number(item.menu_item_id), { stock: restoredStock });
 
           await db.stockMovements.add({
             product_id: item.menu_item_id,
@@ -486,11 +486,11 @@ export class IndexedDBRepository implements DatabaseRepository {
     });
   }
 
-  async deleteOrder(id: number): Promise<void> {
+  async deleteOrder(id: number | string): Promise<void> {
     await db.transaction('rw', [db.orders, db.orderItems, db.payments], async () => {
-      await db.orders.delete(id);
-      await db.orderItems.where('order_id').equals(id).delete();
-      await db.payments.where('order_id').equals(id).delete();
+      await db.orders.delete(Number(id));
+      await db.orderItems.where('order_id').equals(Number(id)).delete();
+      await db.payments.where('order_id').equals(Number(id)).delete();
     });
   }
 
@@ -508,18 +508,18 @@ export class IndexedDBRepository implements DatabaseRepository {
     return { ...expense, id };
   }
 
-  async deleteExpense(id: number): Promise<void> {
-    await db.expenses.delete(id);
+  async deleteExpense(id: number | string): Promise<void> {
+    await db.expenses.delete(Number(id));
   }
 
   // Stock Audit & Movements
-  async adjustStock(productId: number, delta: number, reason: StockMovement['reason']): Promise<void> {
+  async adjustStock(productId: number | string, delta: number, reason: StockMovement['reason']): Promise<void> {
     return db.transaction('rw', [db.menuItems, db.stockMovements], async () => {
-      const prod = await db.menuItems.get(productId);
+      const prod = await db.menuItems.get(Number(productId));
       if (!prod) return;
 
       const newStock = Math.max(0, prod.stock + delta);
-      await db.menuItems.update(productId, { stock: newStock });
+      await db.menuItems.update(Number(productId), { stock: newStock });
 
       await db.stockMovements.add({
         product_id: productId,
@@ -530,18 +530,18 @@ export class IndexedDBRepository implements DatabaseRepository {
     });
   }
 
-  async getStockMovements(productId?: number): Promise<StockMovement[]> {
+  async getStockMovements(productId?: number | string): Promise<StockMovement[]> {
     await this.seedDatabaseIfNeeded();
     let movements: StockMovement[] = [];
-    if (productId && productId > 0) {
-      movements = await db.stockMovements.where('product_id').equals(productId).reverse().toArray();
+    if (productId && Number(productId) > 0) {
+      movements = await db.stockMovements.where('product_id').equals(Number(productId)).reverse().toArray();
     } else {
       movements = await db.stockMovements.reverse().toArray();
     }
 
     const result: StockMovement[] = [];
     for (const mov of movements) {
-      const prod = await db.menuItems.get(mov.product_id);
+      const prod = await db.menuItems.get(Number(mov.product_id));
       result.push({
         ...mov,
         product_name: prod ? prod.name : `Produk #${mov.product_id}`

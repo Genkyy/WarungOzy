@@ -40,7 +40,7 @@ export const POSPage: React.FC = () => {
   } = usePOSStore();
 
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
-  const [failedImageIds, setFailedImageIds] = useState<Record<number, boolean>>({});
+  const [failedImageIds, setFailedImageIds] = useState<Record<string | number, boolean>>({});
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -366,8 +366,8 @@ interface CartContentProps {
   cart: any[];
   customerName: string;
   setCustomerName: (name: string) => void;
-  updateQuantity: (id: number, qty: number) => void;
-  removeFromCart: (id: number) => void;
+  updateQuantity: (id: number | string, qty: number) => void;
+  removeFromCart: (id: number | string) => void;
   clearCart: () => void;
   discountValue: number;
   discountType: 'nominal' | 'percent';

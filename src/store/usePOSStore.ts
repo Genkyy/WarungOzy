@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { MenuItem, CartItem, Order, Category, StoreSettings, ScannedBarcodeLog, BluetoothScannerStatus } from '../types';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 
 interface POSState {
   // Navigation
@@ -10,14 +10,14 @@ interface POSState {
   // Categories & Master Data
   categories: Category[];
   products: MenuItem[];
-  selectedCategoryId: number; // 0 = All
+  selectedCategoryId: number | string; // 0 = All
   searchQuery: string;
   settings: StoreSettings;
   isLoading: boolean;
 
   // Actions for Master Data
   fetchMasterData: () => Promise<void>;
-  setSelectedCategoryId: (catId: number) => void;
+  setSelectedCategoryId: (catId: number | string) => void;
   setSearchQuery: (query: string) => void;
 
   // Cart State
@@ -31,9 +31,9 @@ interface POSState {
 
   // Cart Actions
   addToCart: (product: MenuItem, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
-  updateItemNotes: (productId: number, notes: string) => void;
+  removeFromCart: (productId: number | string) => void;
+  updateQuantity: (productId: number | string, quantity: number) => void;
+  updateItemNotes: (productId: number | string, notes: string) => void;
   setDiscount: (value: number, type: 'nominal' | 'percent') => void;
   setCustomerName: (name: string) => void;
   setOrderNotes: (notes: string) => void;

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { Expense, MenuItem } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
 import { TrendingDown, Plus, Trash2, PackageCheck, CheckCircle2 } from 'lucide-react';
@@ -111,7 +111,7 @@ export const ExpensesPage: React.FC = () => {
     }
   };
 
-  const handleDeleteExpense = (id: number) => {
+  const handleDeleteExpense = (id: number | string) => {
     showConfirm({
       title: 'Hapus Catatan Pengeluaran',
       message: 'Apakah Anda yakin ingin menghapus data pengeluaran ini dari laporan keuangan?',

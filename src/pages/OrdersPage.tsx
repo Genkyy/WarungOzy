@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { Order, OrderItem, Payment } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
 import {
@@ -37,14 +37,14 @@ export const OrdersPage: React.FC = () => {
     loadOrders();
   }, []);
 
-  const handleViewDetails = async (orderId: number) => {
+  const handleViewDetails = async (orderId: number | string) => {
     const details = await repository.getOrderDetails(orderId);
     if (details) {
       setSelectedOrderDetails(details);
     }
   };
 
-  const handleVoidOrder = (orderId: number) => {
+  const handleVoidOrder = (orderId: number | string) => {
     showConfirm({
       title: 'Pembatalan Transaksi (Void)',
       message: 'Apakah Anda yakin ingin membatalkan transaksi ini? Stok barang yang terjual akan dikembalikan otomatis ke inventaris warung.',

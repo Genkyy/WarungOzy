@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { openFoodFactsService } from '../services/openFoodFactsService';
 import { X, Plus, PackagePlus, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
 import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
@@ -17,7 +17,7 @@ export const AddProductModal: React.FC = () => {
   } = usePOSStore();
 
   const [name, setName] = useState('');
-  const [categoryId, setCategoryId] = useState<number>(categories[0]?.id || 1);
+  const [categoryId, setCategoryId] = useState<number | string>(categories[0]?.id || 1);
   const [price, setPrice] = useState<string>('');
   const [costPrice, setCostPrice] = useState<string>('');
   const [barcode, setBarcode] = useState('');

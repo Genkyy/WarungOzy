@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { Order, Expense, OrderItem } from '../types';
 import {
   LayoutDashboard,

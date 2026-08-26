@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { MenuItem, StockMovement } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
 import { openFoodFactsService } from '../services/openFoodFactsService';
@@ -136,7 +136,7 @@ export const StockReportPage: React.FC = () => {
   const lowStockThreshold = 5;
   const [activeSubTab, setActiveSubTab] = useState<'inventory' | 'movements'>('inventory');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(0);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | string>(0);
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [adjustingProduct, setAdjustingProduct] = useState<MenuItem | null>(null);
   const [isSyncingPhotos, setIsSyncingPhotos] = useState(false);

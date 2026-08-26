@@ -15,29 +15,29 @@ export interface DatabaseRepository {
   createCategory(category: Omit<Category, 'id'>): Promise<Category>;
 
   // Products
-  getMenuItems(categoryId?: number): Promise<MenuItem[]>;
+  getMenuItems(categoryId?: number | string): Promise<MenuItem[]>;
   searchMenuItems(query: string): Promise<MenuItem[]>;
   findProductByBarcode(barcode: string): Promise<MenuItem | null>;
   createMenuItem(product: Omit<MenuItem, 'id'>): Promise<MenuItem>;
-  updateMenuItem(id: number, product: Partial<MenuItem>): Promise<void>;
-  deleteMenuItem(id: number): Promise<void>;
+  updateMenuItem(id: number | string, product: Partial<MenuItem>): Promise<void>;
+  deleteMenuItem(id: number | string): Promise<void>;
 
   // Orders & Checkout
   createOrder(orderData: CreateOrderDTO): Promise<Order>;
   getOrders(status?: string): Promise<Order[]>;
-  getOrderDetails(orderId: number): Promise<{ order: Order; items: OrderItem[]; payment?: Payment } | null>;
-  updateOrderStatus(id: number, status: 'completed' | 'cancelled'): Promise<void>;
-  deleteOrder(id: number): Promise<void>;
-  voidOrder(id: number): Promise<void>;
+  getOrderDetails(orderId: number | string): Promise<{ order: Order; items: OrderItem[]; payment?: Payment } | null>;
+  updateOrderStatus(id: number | string, status: 'completed' | 'cancelled'): Promise<void>;
+  deleteOrder(id: number | string): Promise<void>;
+  voidOrder(id: number | string): Promise<void>;
 
   // Expenses
   getExpenses(): Promise<Expense[]>;
   createExpense(expense: Omit<Expense, 'id'>): Promise<Expense>;
-  deleteExpense(id: number): Promise<void>;
+  deleteExpense(id: number | string): Promise<void>;
 
   // Stock Audit
-  adjustStock(productId: number, delta: number, reason: StockMovement['reason']): Promise<void>;
-  getStockMovements(productId?: number): Promise<StockMovement[]>;
+  adjustStock(productId: number | string, delta: number, reason: StockMovement['reason']): Promise<void>;
+  getStockMovements(productId?: number | string): Promise<StockMovement[]>;
 
   // Settings
   getSettings(): Promise<Record<string, string>>;

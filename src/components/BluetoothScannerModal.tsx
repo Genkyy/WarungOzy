@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { audioBeep } from '../utils/audioBeep';
 import {
   X,

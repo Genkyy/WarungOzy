@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
-import { repository } from '../services/indexedDBRepository';
+import { repository } from '../services/supabaseRepository';
 import { Order, OrderItem, Payment } from '../types';
 import { X, Printer, PlusCircle, CheckCircle } from 'lucide-react';
 
