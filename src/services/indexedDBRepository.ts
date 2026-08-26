@@ -214,6 +214,13 @@ const DEFAULT_SETTINGS = [
   { key: 'low_stock_threshold', value: '5' }
 ];
 
+export function toDexieKey(id: number | string | undefined | null): number | string {
+  if (id === undefined || id === null) return 0;
+  if (typeof id === 'number') return id;
+  const num = Number(id);
+  return isNaN(num) ? id : num;
+}
+
 export class IndexedDBRepository implements DatabaseRepository {
   async seedDatabaseIfNeeded() {
     const categoryCount = await db.categories.count();
@@ -302,8 +309,9 @@ export class IndexedDBRepository implements DatabaseRepository {
   // Products
   async getMenuItems(categoryId?: number | string): Promise<MenuItem[]> {
     await this.seedDatabaseIfNeeded();
-    if (categoryId && Number(categoryId) > 0) {
-      return db.menuItems.where('category_id').equals(Number(categoryId)).toArray();
+    if (categoryId) {
+      const key = toDexieKey(categoryId);
+      return db.menuItems.where('category_id').equals(key as any).toArray();
     }
     return db.menuItems.toArray();
   }
@@ -345,11 +353,11 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   async updateMenuItem(id: number | string, product: Partial<MenuItem>): Promise<void> {
-    await db.menuItems.update(Number(id), product);
+    await db.menuItems.update(toDexieKey(id) as any, product);
   }
 
   async deleteMenuItem(id: number | string): Promise<void> {
-    await db.menuItems.delete(Number(id));
+    await db.menuItems.delete(toDexieKey(id) as any);
   }
 
   // Orders
@@ -393,10 +401,10 @@ export class IndexedDBRepository implements DatabaseRepository {
         const itemId = await db.orderItems.add(itemObj as OrderItem);
         orderItemsToInsert.push({ ...itemObj, id: itemId });
 
-        const prod = await db.menuItems.get(Number(item.menu_item_id));
+        const prod = await db.menuItems.get(toDexieKey(item.menu_item_id) as any);
         if (prod) {
           const newStock = Math.max(0, prod.stock - item.quantity);
-          await db.menuItems.update(Number(item.menu_item_id), { stock: newStock });
+          await db.menuItems.update(toDexieKey(item.menu_item_id) as any, { stock: newStock });
 
           await db.stockMovements.add({
             product_id: item.menu_item_id,
@@ -438,15 +446,16 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   async getOrderDetails(orderId: number | string): Promise<{ order: Order; items: OrderItem[]; payment?: Payment } | null> {
-    const order = await db.orders.get(Number(orderId));
+    const key = toDexieKey(orderId);
+    const order = await db.orders.get(key as any);
     if (!order) return null;
 
-    const rawItems = await db.orderItems.where('order_id').equals(Number(orderId)).toArray();
-    const payment = await db.payments.where('order_id').equals(Number(orderId)).first();
+    const rawItems = await db.orderItems.where('order_id').equals(key as any).toArray();
+    const payment = await db.payments.where('order_id').equals(key as any).first();
 
     const items: OrderItem[] = [];
     for (const item of rawItems) {
-      const prod = await db.menuItems.get(Number(item.menu_item_id));
+      const prod = await db.menuItems.get(toDexieKey(item.menu_item_id) as any);
       items.push({
         ...item,
         product_name: prod ? prod.name : `Produk #${item.menu_item_id}`
@@ -457,22 +466,23 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   async updateOrderStatus(id: number | string, status: 'completed' | 'cancelled'): Promise<void> {
-    await db.orders.update(Number(id), { status });
+    await db.orders.update(toDexieKey(id) as any, { status });
   }
 
   async voidOrder(id: number | string): Promise<void> {
     return db.transaction('rw', [db.orders, db.orderItems, db.menuItems, db.stockMovements], async () => {
-      const order = await db.orders.get(Number(id));
+      const key = toDexieKey(id);
+      const order = await db.orders.get(key as any);
       if (!order || order.status === 'cancelled') return;
 
-      await db.orders.update(Number(id), { status: 'cancelled' });
+      await db.orders.update(key as any, { status: 'cancelled' });
 
-      const items = await db.orderItems.where('order_id').equals(Number(id)).toArray();
+      const items = await db.orderItems.where('order_id').equals(key as any).toArray();
       for (const item of items) {
-        const prod = await db.menuItems.get(Number(item.menu_item_id));
+        const prod = await db.menuItems.get(toDexieKey(item.menu_item_id) as any);
         if (prod) {
           const restoredStock = prod.stock + item.quantity;
-          await db.menuItems.update(Number(item.menu_item_id), { stock: restoredStock });
+          await db.menuItems.update(toDexieKey(item.menu_item_id) as any, { stock: restoredStock });
 
           await db.stockMovements.add({
             product_id: item.menu_item_id,
@@ -487,10 +497,11 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   async deleteOrder(id: number | string): Promise<void> {
+    const key = toDexieKey(id);
     await db.transaction('rw', [db.orders, db.orderItems, db.payments], async () => {
-      await db.orders.delete(Number(id));
-      await db.orderItems.where('order_id').equals(Number(id)).delete();
-      await db.payments.where('order_id').equals(Number(id)).delete();
+      await db.orders.delete(key as any);
+      await db.orderItems.where('order_id').equals(key as any).delete();
+      await db.payments.where('order_id').equals(key as any).delete();
     });
   }
 
@@ -509,17 +520,18 @@ export class IndexedDBRepository implements DatabaseRepository {
   }
 
   async deleteExpense(id: number | string): Promise<void> {
-    await db.expenses.delete(Number(id));
+    await db.expenses.delete(toDexieKey(id) as any);
   }
 
   // Stock Audit & Movements
   async adjustStock(productId: number | string, delta: number, reason: StockMovement['reason']): Promise<void> {
     return db.transaction('rw', [db.menuItems, db.stockMovements], async () => {
-      const prod = await db.menuItems.get(Number(productId));
+      const key = toDexieKey(productId);
+      const prod = await db.menuItems.get(key as any);
       if (!prod) return;
 
       const newStock = Math.max(0, prod.stock + delta);
-      await db.menuItems.update(Number(productId), { stock: newStock });
+      await db.menuItems.update(key as any, { stock: newStock });
 
       await db.stockMovements.add({
         product_id: productId,
@@ -533,15 +545,16 @@ export class IndexedDBRepository implements DatabaseRepository {
   async getStockMovements(productId?: number | string): Promise<StockMovement[]> {
     await this.seedDatabaseIfNeeded();
     let movements: StockMovement[] = [];
-    if (productId && Number(productId) > 0) {
-      movements = await db.stockMovements.where('product_id').equals(Number(productId)).reverse().toArray();
+    if (productId) {
+      const key = toDexieKey(productId);
+      movements = await db.stockMovements.where('product_id').equals(key as any).reverse().toArray();
     } else {
       movements = await db.stockMovements.reverse().toArray();
     }
 
     const result: StockMovement[] = [];
     for (const mov of movements) {
-      const prod = await db.menuItems.get(Number(mov.product_id));
+      const prod = await db.menuItems.get(toDexieKey(mov.product_id) as any);
       result.push({
         ...mov,
         product_name: prod ? prod.name : `Produk #${mov.product_id}`

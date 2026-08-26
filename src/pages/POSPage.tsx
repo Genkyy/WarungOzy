@@ -63,7 +63,7 @@ export const POSPage: React.FC = () => {
   };
 
   const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategoryId === 0 || p.category_id === selectedCategoryId;
+    const matchesCategory = !selectedCategoryId || String(selectedCategoryId) === '0' || String(p.category_id) === String(selectedCategoryId);
     return matchesCategory;
   });
 
@@ -102,20 +102,20 @@ export const POSPage: React.FC = () => {
             <button
               onClick={() => setSelectedCategoryId(0)}
               className={`px-4 py-2 rounded-xl font-medium text-xs transition-all whitespace-nowrap min-h-[40px] flex items-center gap-2 shrink-0 ${
-                selectedCategoryId === 0
+                !selectedCategoryId || String(selectedCategoryId) === '0'
                   ? 'bg-[#D97706] text-white shadow-sm font-bold'
                   : 'bg-[#FAF7F2] text-[#8A8175] hover:text-[#2A2622] border border-[#E8E2D8]'
               }`}
             >
               <span>Semua Kategori</span>
-              <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono ${selectedCategoryId === 0 ? 'bg-black/20 text-white' : 'bg-[#E8E2D8] text-[#8A8175]'}`}>
+              <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono ${!selectedCategoryId || String(selectedCategoryId) === '0' ? 'bg-black/20 text-white' : 'bg-[#E8E2D8] text-[#8A8175]'}`}>
                 {products.length}
               </span>
             </button>
 
             {displayCategories.map((cat) => {
-              const isSelected = selectedCategoryId === cat.id;
-              const catItemCount = products.filter(p => p.category_id === cat.id).length;
+              const isSelected = String(selectedCategoryId) === String(cat.id);
+              const catItemCount = products.filter(p => String(p.category_id) === String(cat.id)).length;
               return (
                 <button
                   key={cat.id}

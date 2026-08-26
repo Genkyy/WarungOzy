@@ -230,7 +230,7 @@ export const StockReportPage: React.FC = () => {
       p.name.toLowerCase().includes(q) ||
       (Boolean(p.barcode) && p.barcode!.includes(q));
 
-    const matchesCategory = selectedCategoryId === 0 || p.category_id === selectedCategoryId;
+    const matchesCategory = !selectedCategoryId || String(selectedCategoryId) === '0' || String(p.category_id) === String(selectedCategoryId);
 
     let matchesFilter = true;
     if (stockFilter === 'low') {
@@ -413,8 +413,8 @@ export const StockReportPage: React.FC = () => {
             </button>
 
             {categories.map((cat) => {
-              const catProdCount = products.filter((p) => p.category_id === cat.id).length;
-              const isSelected = selectedCategoryId === cat.id;
+              const catProdCount = products.filter((p) => String(p.category_id) === String(cat.id)).length;
+              const isSelected = String(selectedCategoryId) === String(cat.id);
               return (
                 <button
                   key={cat.id || cat.name}

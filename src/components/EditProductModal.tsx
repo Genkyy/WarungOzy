@@ -91,12 +91,22 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, onC
     const oldStockNum = product.stock || 0;
     const stockDelta = newStockNum - oldStockNum;
 
+    let targetCategoryId = categoryId;
+    if (categories.length > 0) {
+      const matched = categories.find(c => String(c.id) === String(categoryId));
+      if (matched && matched.id !== undefined) {
+        targetCategoryId = matched.id;
+      } else if (categories[0]?.id !== undefined) {
+        targetCategoryId = categories[0].id;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       // 1. Update MenuItem
       await repository.updateMenuItem(product.id!, {
         name: name.trim(),
-        category_id: categoryId,
+        category_id: targetCategoryId,
         price: numPrice,
         cost_price: numCostPrice,
         barcode: barcode.trim(),

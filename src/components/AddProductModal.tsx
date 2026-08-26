@@ -38,6 +38,15 @@ export const AddProductModal: React.FC = () => {
     }
   }, [isAddProductModalOpen, newProductDraft, setNewProductDraft]);
 
+  useEffect(() => {
+    if (isAddProductModalOpen && categories.length > 0) {
+      const exists = categories.some(c => String(c.id) === String(categoryId));
+      if (!exists && categories[0]?.id) {
+        setCategoryId(categories[0].id);
+      }
+    }
+  }, [isAddProductModalOpen, categories, categoryId]);
+
   if (!isAddProductModalOpen) return null;
 
   const handleGenerateBarcode = () => {
@@ -60,26 +69,38 @@ export const AddProductModal: React.FC = () => {
     showToast('Foto HD & Barcode unik berhasil diisikan!', 'success');
   };
 
+  const handleSelectSearchResult = (prod: any) => {
+    if (prod.name || prod.product_name) setName(prod.name || prod.product_name);
+    if (prod.imageUrl || prod.image_url) setImagePath(prod.imageUrl || prod.image_url);
+    if (prod.barcode) setBarcode(prod.barcode);
+    setSearchResults([]);
+    showToast('Data produk berhasil diisikan dari database Open Food Facts!', 'success');
+  };
+
   const handleSearchByName = async () => {
     if (!name.trim()) {
-      showToast('Masukkan Nama Produk terlebih dahulu untuk mencari!', 'error');
+      showToast('Ketik Nama Produk terlebih dahulu!', 'error');
       return;
     }
 
     setIsFetchingOFF(true);
-    setSearchResults([]);
     try {
-      const results = await openFoodFactsService.searchByName(name);
+      const results = await openFoodFactsService.searchByName(name.trim());
       if (results && results.length > 0) {
-        setSearchResults(results);
-        showToast(`Ditemukan ${results.length} varian pabrik di database (Food/Beauty/Products)!`, 'success');
+        if (results.length === 1) {
+          const res = results[0];
+          if (res.name) setName(res.name);
+          if (res.imageUrl) setImagePath(res.imageUrl);
+          if (res.barcode) setBarcode(res.barcode);
+          showToast('Data produk ditemukan via Open Food Facts!', 'success');
+        } else {
+          setSearchResults(results);
+        }
       } else {
-        // Fallback to auto-suggest photo & barcode
         handleAutoSuggestPhoto();
-        showToast('Produk tidak ditemukan di DB pabrik. Foto HD & Barcode Unik diisikan otomatis!', 'info');
       }
     } catch (err) {
-      showToast('Gagal mencari via nama produk', 'error');
+      showToast('Gagal menghubungi Open Food Facts', 'error');
     } finally {
       setIsFetchingOFF(false);
     }
@@ -129,11 +150,21 @@ export const AddProductModal: React.FC = () => {
 
     const finalBarcode = barcode.trim() || openFoodFactsService.generateInternalBarcode();
 
+    let targetCategoryId = categoryId;
+    if (categories.length > 0) {
+      const matched = categories.find(c => String(c.id) === String(categoryId));
+      if (matched && matched.id !== undefined) {
+        targetCategoryId = matched.id;
+      } else if (categories[0]?.id !== undefined) {
+        targetCategoryId = categories[0].id;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       await repository.createMenuItem({
         name: name.trim(),
-        category_id: categoryId,
+        category_id: targetCategoryId,
         price: parseFloat(price) || 0,
         cost_price: parseFloat(costPrice) || 0,
         barcode: finalBarcode,
