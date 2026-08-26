@@ -635,6 +635,9 @@ export class IndexedDBRepository implements DatabaseRepository {
       if (data.settings?.length) await db.settings.bulkAdd(data.settings);
     });
   }
+  getStorageMode(): 'supabase' | 'indexeddb' {
+    return 'indexeddb';
+  }
 }
 
 export const repository = new IndexedDBRepository();

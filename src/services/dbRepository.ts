@@ -39,8 +39,9 @@ export interface DatabaseRepository {
   adjustStock(productId: number | string, delta: number, reason: StockMovement['reason']): Promise<void>;
   getStockMovements(productId?: number | string): Promise<StockMovement[]>;
 
-  // Settings
+  // Settings & Meta
   getSettings(): Promise<Record<string, string>>;
   updateSettings(settings: Record<string, string>): Promise<void>;
   resetDatabaseWithSeedData(): Promise<void>;
+  getStorageMode(): 'supabase' | 'indexeddb';
 }

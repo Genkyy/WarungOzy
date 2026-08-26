@@ -134,6 +134,36 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       <div className="max-w-2xl space-y-6">
+        {/* Database Status Banner */}
+        {repository.getStorageMode() === 'supabase' ? (
+          <div className="rounded-xl p-4 border border-[#3F7D4F]/30 bg-[#F0F7F2] flex items-start gap-3 shadow-sm">
+            <div className="p-2 rounded-lg bg-[#3F7D4F] text-white shrink-0">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-[#3F7D4F]">Status Database: Terhubung ke Supabase Cloud ☁️</h3>
+              <p className="text-[11px] text-[#2A2622]/80 mt-0.5">
+                Seluruh transaksi, stok, dan produk tersimpan langsung dan tersinkron secara terpusat di Supabase PostgreSQL.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl p-4 border border-[#D97706]/30 bg-[#FEF3C7]/60 flex items-start gap-3 shadow-sm">
+            <div className="p-2 rounded-lg bg-[#D97706] text-white shrink-0">
+              <Database className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-[#B45309]">Status Database: IndexedDB Lokal (Supabase Belum Dikonfigurasi)</h3>
+              <p className="text-[11px] text-[#2A2622]/80 mt-0.5">
+                Aplikasi saat ini berjalan dalam <strong>Mode Offline/Lokal (IndexedDB)</strong> karena file <code className="bg-white px-1 py-0.5 rounded text-[#B45309]">.env</code> Anda masih berisi URL placeholder (<code className="bg-white px-1 py-0.5 rounded text-[#B45309]">your-project-ref.supabase.co</code>).
+              </p>
+              <p className="text-[11px] text-[#B45309] font-semibold mt-1.5">
+                👉 Untuk menyimpan ke Supabase Cloud: Ganti baris <code className="bg-white px-1 py-0.5 rounded">VITE_SUPABASE_URL</code> dan <code className="bg-white px-1 py-0.5 rounded">VITE_SUPABASE_ANON_KEY</code> di file <code className="bg-white px-1 py-0.5 rounded">.env</code> dengan URL & Key asli dari Supabase Dashboard Anda.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Single-Column Grouped Form Layout (desain.md 5.5) */}
         <form onSubmit={handleSaveSettings} className="paper-panel rounded-xl p-5 sm:p-6 border border-[#E8E2D8] space-y-5 shadow-sm bg-white">
           <h2 className="text-sm font-bold text-[#2A2622] pb-2 border-b border-[#E8E2D8]">

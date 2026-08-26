@@ -803,6 +803,9 @@ export class SupabaseRepository implements DatabaseRepository {
       await indexedDBRepository.importDatabaseJSON(jsonStr);
     }
   }
+  getStorageMode(): 'supabase' | 'indexeddb' {
+    return this.isConfigured() ? 'supabase' : 'indexeddb';
+  }
 }
 
 export const repository = new SupabaseRepository();
