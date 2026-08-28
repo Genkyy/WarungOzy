@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { repository } from '../services/supabaseRepository';
 import { Order, Expense, OrderItem } from '../types';
+import { usePOSStore } from '../store/usePOSStore';
 import {
   LayoutDashboard,
   DollarSign,
@@ -109,13 +110,38 @@ export const DashboardPage: React.FC = () => {
     });
   }, [allExpenses, startDate, endDate]);
 
+  const { products } = usePOSStore();
+
   // Financial Calculations
   const grossSales = filteredOrders.reduce((sum, o) => sum + o.total_amount, 0);
   const totalOrdersCount = filteredOrders.length;
   const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  // Estimasi Profit Kotor (10% margin standar warung) & Profit Bersih
-  const estimatedGrossProfit = filteredOrders.reduce((sum, o) => sum + (o.subtotal * 0.10), 0);
+  // Map product id to cost_price (HPP)
+  const productCostMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    products.forEach((p) => {
+      if (p.id !== undefined) map[String(p.id)] = p.cost_price || 0;
+    });
+    return map;
+  }, [products]);
+
+  // Real HPP & Real Gross Profit Calculation
+  const totalHPP = useMemo(() => {
+    return filteredOrders.reduce((totalHpp, order) => {
+      const orderItems = allOrderItems.filter((item) => String(item.order_id) === String(order.id));
+      if (orderItems.length > 0) {
+        const orderHpp = orderItems.reduce((sum, item) => {
+          const cost = productCostMap[String(item.menu_item_id)] || 0;
+          return sum + (cost > 0 ? cost * item.quantity : Math.round(item.subtotal * 0.85));
+        }, 0);
+        return totalHpp + orderHpp;
+      }
+      return totalHpp + Math.round(order.subtotal * 0.85);
+    }, 0);
+  }, [filteredOrders, allOrderItems, productCostMap]);
+
+  const estimatedGrossProfit = Math.max(0, grossSales - totalHPP);
   const netProfit = estimatedGrossProfit - totalExpenses;
 
   // Chart Data preparation (Group by Date)

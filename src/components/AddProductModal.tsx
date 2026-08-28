@@ -35,6 +35,7 @@ export const AddProductModal: React.FC = () => {
       if (newProductDraft.name) setName(newProductDraft.name);
       if (newProductDraft.stock) setStock(newProductDraft.stock);
       if (newProductDraft.unit) setUnit(newProductDraft.unit);
+      if (newProductDraft.costPrice) setCostPrice(newProductDraft.costPrice);
       setNewProductDraft(null); // Clear draft after loading
     }
   }, [isAddProductModalOpen, newProductDraft, setNewProductDraft]);

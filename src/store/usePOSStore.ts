@@ -49,8 +49,8 @@ interface POSState {
   setCameraScannerOpen: (open: boolean) => void;
   isAddProductModalOpen: boolean;
   setAddProductModalOpen: (open: boolean) => void;
-  newProductDraft: { name?: string; stock?: string; unit?: string } | null;
-  setNewProductDraft: (draft: { name?: string; stock?: string; unit?: string } | null) => void;
+  newProductDraft: { name?: string; stock?: string; unit?: string; costPrice?: string } | null;
+  setNewProductDraft: (draft: { name?: string; stock?: string; unit?: string; costPrice?: string } | null) => void;
   isBluetoothModalOpen: boolean;
   setBluetoothModalOpen: (open: boolean) => void;
 
