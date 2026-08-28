@@ -34,8 +34,10 @@ export const Header: React.FC = () => {
         <input
           id="main-search-input"
           type="text"
+          inputMode="search"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={(e) => e.target.select()}
           placeholder="Cari produk atau scan barcode... (Ctrl+K)"
           className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl pl-9 pr-8 sm:pr-24 py-2 text-xs sm:text-sm text-[#2A2622] placeholder-[#8A8175] focus:outline-none focus:border-[#D97706] focus:bg-white transition-all"
         />

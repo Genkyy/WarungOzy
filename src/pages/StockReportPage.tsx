@@ -17,8 +17,10 @@ import {
   Sparkles,
   Loader2,
   Trash2,
-  Pencil
+  Pencil,
+  Zap
 } from 'lucide-react';
+import { isDigitalUnit } from '../utils/productUtils';
 
 interface SwipeableStockCardProps {
   prod: MenuItem;
@@ -40,6 +42,8 @@ const SwipeableStockCard: React.FC<SwipeableStockCardProps> = ({
   onDelete
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const isDigital = isDigitalUnit(prod.unit);
 
   return (
     <div className="relative rounded-2xl border border-[#E8E2D8] bg-[#FAF7F2] overflow-hidden shadow-xs">
@@ -85,12 +89,16 @@ const SwipeableStockCard: React.FC<SwipeableStockCardProps> = ({
         onClick={() => {
           if (isOpen) setIsOpen(false);
         }}
-        className="bg-white relative z-10 p-3.5 sm:p-4 flex items-center justify-between gap-3 touch-pan-y cursor-grab active:cursor-grabbing select-none"
+        className="bg-white relative z-10 p-3.5 sm:p-4 flex items-center justify-between gap-3 touch-pan-y cursor-grab active:cursor-grabbing"
       >
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-sm text-[#2A2622] truncate">{prod.name}</h3>
-            {isOut ? (
+            {isDigital ? (
+              <span className="px-2 py-0.5 rounded-[6px] bg-[#3B82F6] text-white text-[10px] font-bold shrink-0 flex items-center gap-1">
+                <Zap className="w-3 h-3" /> Digital
+              </span>
+            ) : isOut ? (
               <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white text-[10px] font-bold shrink-0">Habis</span>
             ) : isLow ? (
               <span className="px-2 py-0.5 rounded-[6px] bg-[#D4A017] text-white text-[10px] font-bold shrink-0">Menipis</span>
@@ -115,7 +123,7 @@ const SwipeableStockCard: React.FC<SwipeableStockCardProps> = ({
         <div className="flex items-center gap-2.5 shrink-0 text-right">
           <div>
             <div className="text-sm font-extrabold text-[#2A2622]">
-              {prod.stock} <span className="text-xs font-normal text-[#8A8175]">{prod.unit}</span>
+              {isDigital ? '—' : prod.stock} <span className="text-xs font-normal text-[#8A8175]">{prod.unit}</span>
             </div>
             <div className="text-[10px] text-[#8A8175]">
               <span className="text-[#3F7D4F]">+{totalIn}</span> / <span className="text-[#B84B3E]">-{totalOut}</span>
@@ -219,8 +227,8 @@ export const StockReportPage: React.FC = () => {
     setMovementsPage(1);
   }, [searchQuery, activeSubTab, stockFilter, selectedCategoryId]);
 
-  const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= lowStockThreshold);
-  const outOfStockProducts = products.filter((p) => p.stock <= 0);
+  const lowStockProducts = products.filter((p) => !isDigitalUnit(p.unit) && p.stock > 0 && p.stock <= lowStockThreshold);
+  const outOfStockProducts = products.filter((p) => !isDigitalUnit(p.unit) && p.stock <= 0);
 
   // Filter Products by Search Query, Category, AND Clickable Summary Card Fast Filter
   const filteredProducts = products.filter((p) => {
@@ -234,9 +242,9 @@ export const StockReportPage: React.FC = () => {
 
     let matchesFilter = true;
     if (stockFilter === 'low') {
-      matchesFilter = p.stock > 0 && p.stock <= lowStockThreshold;
+      matchesFilter = !isDigitalUnit(p.unit) && p.stock > 0 && p.stock <= lowStockThreshold;
     } else if (stockFilter === 'out') {
-      matchesFilter = p.stock <= 0;
+      matchesFilter = !isDigitalUnit(p.unit) && p.stock <= 0;
     }
 
     return matchesSearch && matchesCategory && matchesFilter;
@@ -473,8 +481,9 @@ export const StockReportPage: React.FC = () => {
                       </tr>
                     ) : (
                       paginatedProducts.map((prod) => {
-                        const isOut = prod.stock <= 0;
-                        const isLow = prod.stock > 0 && prod.stock <= lowStockThreshold;
+                        const isDigital = isDigitalUnit(prod.unit);
+                        const isOut = !isDigital && prod.stock <= 0;
+                        const isLow = !isDigital && prod.stock > 0 && prod.stock <= lowStockThreshold;
 
                         const itemMovements = movements.filter((m) => m.product_id === prod.id);
                         const totalIn = itemMovements
@@ -492,9 +501,13 @@ export const StockReportPage: React.FC = () => {
                             <td className="p-3.5 font-bold text-[#2A2622]">Rp {prod.price.toLocaleString('id-ID')}</td>
                             <td className="p-3.5 text-[#3F7D4F] font-semibold">+{totalIn}</td>
                             <td className="p-3.5 text-[#B84B3E] font-semibold">-{totalOut}</td>
-                            <td className="p-3.5 font-bold text-[#2A2622]">{prod.stock} {prod.unit}</td>
+                            <td className="p-3.5 font-bold text-[#2A2622]">{isDigital ? '—' : `${prod.stock} ${prod.unit}`}</td>
                             <td className="p-3.5">
-                              {isOut ? (
+                              {isDigital ? (
+                                <span className="px-2 py-0.5 rounded-[6px] bg-[#3B82F6] text-white text-[10px] font-bold inline-flex items-center gap-1">
+                                  <Zap className="w-3 h-3" /> Digital
+                                </span>
+                              ) : isOut ? (
                                 <span className="px-2 py-0.5 rounded-[6px] bg-[#B84B3E] text-white text-[10px] font-bold">Habis</span>
                               ) : isLow ? (
                                 <span className="px-2 py-0.5 rounded-[6px] bg-[#D4A017] text-white text-[10px] font-bold">Menipis</span>

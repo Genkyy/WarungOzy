@@ -180,6 +180,7 @@ export const SettingsPage: React.FC = () => {
               required
               value={outletName}
               onChange={(e) => setOutletName(e.target.value)}
+              onFocus={(e) => e.target.select()}
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] font-semibold focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
           </div>
@@ -192,8 +193,10 @@ export const SettingsPage: React.FC = () => {
               </label>
               <input
                 type="number"
+                inputMode="numeric"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="0"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
               />
@@ -207,8 +210,10 @@ export const SettingsPage: React.FC = () => {
               </label>
               <input
                 type="number"
+                inputMode="numeric"
                 value={lowStockThreshold}
                 onChange={(e) => setLowStockThreshold(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="5"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
               />
@@ -224,6 +229,7 @@ export const SettingsPage: React.FC = () => {
               type="text"
               value={receiptFooter}
               onChange={(e) => setReceiptFooter(e.target.value)}
+              onFocus={(e) => e.target.select()}
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-sm text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
           </div>
@@ -237,6 +243,7 @@ export const SettingsPage: React.FC = () => {
               type="text"
               value={qrisImageUrl}
               onChange={(e) => setQrisImageUrl(e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="https://... (URL Foto QRIS BCA/Mandiri/DANA/OVO Warung Anda)"
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706] focus:bg-white"
             />
@@ -341,7 +348,7 @@ export const SettingsPage: React.FC = () => {
             Reset Data Bawaan Pabrik (Seed Data)
           </h2>
           <p className="text-xs text-[#8A8175]">
-            Mengisi ulang basis data IndexedDB lokal dengan sampel produk asli warung kelontong Indonesia (Indomie, Aqua, Teh Botol, Beras, Minyak, dll).
+            Mereset ulang basis data lokal (membersihkan produk bawaan sampel & riwayat dummy agar toko siap digunakan secara penuh).
           </p>
 
           <button

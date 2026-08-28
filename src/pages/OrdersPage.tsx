@@ -97,8 +97,10 @@ export const OrdersPage: React.FC = () => {
           <Search className="w-4 h-4 text-[#8A8175] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
+            inputMode="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={(e) => e.target.select()}
             placeholder="Cari no. nota / pelanggan..."
             className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-9 pr-4 py-2 text-xs text-[#2A2622] placeholder-[#8A8175] focus:outline-none focus:border-[#D97706]"
           />

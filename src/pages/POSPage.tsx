@@ -16,6 +16,7 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isDigitalUnit } from '../utils/productUtils';
 
 export const POSPage: React.FC = () => {
   const {
@@ -157,11 +158,7 @@ export const POSPage: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 align-start">
               {filteredProducts.map((product) => {
                 const catObj = displayCategories.find(c => c.id === product.category_id);
-                const isDigital = catObj?.name.toLowerCase().includes('top up') ||
-                                  catObj?.name.toLowerCase().includes('pulsa') ||
-                                  catObj?.name.toLowerCase().includes('digital') ||
-                                  product.unit === 'Top Up' ||
-                                  product.unit === 'Voucher';
+                const isDigital = isDigitalUnit(product.unit, catObj?.name);
 
                 const isOutOfStock = !isDigital && product.stock <= 0;
                 const isLowStock = !isDigital && product.stock > 0 && product.stock <= lowStockThreshold;
@@ -405,6 +402,7 @@ const CartContent: React.FC<CartContentProps> = ({
           type="text"
           value={customerName}
           onChange={(e) => setCustomerName(e.target.value)}
+          onFocus={(e) => e.target.select()}
           placeholder="Nama Pelanggan..."
           className="w-full bg-white border border-[#E8E2D8] rounded-lg px-3 py-1.5 text-xs text-[#2A2622] placeholder-[#8A8175] focus:outline-none focus:border-[#D97706]"
         />
@@ -487,8 +485,10 @@ const CartContent: React.FC<CartContentProps> = ({
           <div className="flex items-center gap-2">
             <input
               type="number"
+              inputMode="numeric"
               value={discountValue || ''}
               onChange={(e) => setDiscount(parseFloat(e.target.value) || 0, discountType)}
+              onFocus={(e) => e.target.select()}
               placeholder="0"
               className="w-20 bg-[#FAF7F2] border border-[#E8E2D8] rounded-lg px-2 py-1 text-right text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
             />

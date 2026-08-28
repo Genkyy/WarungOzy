@@ -181,6 +181,7 @@ export const PaymentModal: React.FC = () => {
                       const raw = e.target.value.replace(/\D/g, '');
                       setCashAmountInput(raw ? formatRupiah(raw, false) : '');
                     }}
+                    onFocus={(e) => e.target.select()}
                     placeholder="0"
                     className="w-full bg-white border border-[#E8E2D8] rounded-xl pl-10 pr-4 py-3 text-base sm:text-lg font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706] select-text"
                     autoFocus
@@ -257,6 +258,7 @@ export const PaymentModal: React.FC = () => {
                   type="text"
                   value={refNumber}
                   onChange={(e) => setRefNumber(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   placeholder="Misal: 9921408..."
                   className="w-full bg-white border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
                 />

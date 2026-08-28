@@ -3,8 +3,9 @@ import { repository } from '../services/supabaseRepository';
 import { usePOSStore } from '../store/usePOSStore';
 import { openFoodFactsService } from '../services/openFoodFactsService';
 import { MenuItem } from '../types';
-import { X, Pencil, Sparkles, Loader2, Image as ImageIcon, Trash2, Save, PackageCheck, RotateCcw } from 'lucide-react';
+import { X, Pencil, Sparkles, Loader2, Image as ImageIcon, Trash2, Save, PackageCheck, RotateCcw, Zap } from 'lucide-react';
 import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
+import { isDigitalUnit } from '../utils/productUtils';
 
 export interface EditProductModalProps {
   product: MenuItem;
@@ -231,61 +232,80 @@ export const EditProductModal: React.FC<EditProductModalProps> = ({ product, onC
             </div>
           </div>
 
-          {/* 4. PROMINENT STOK EDITOR WITH ORIGINAL STOCK & LIVE DIFFERENCE BADGE */}
-          <div className="p-3.5 rounded-xl bg-[#FEF3C7]/50 border border-[#D97706]/40 space-y-2.5 shadow-xs">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <label className="block text-xs font-extrabold text-[#2A2622] flex items-center gap-1.5">
-                <PackageCheck className="w-4 h-4 text-[#D97706]" />
-                <span>Jumlah Stok Fisik Warung Saat Ini</span>
-              </label>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-bold text-[#8A8175] bg-white px-2 py-0.5 rounded border border-[#E8E2D8]" title="Jumlah stok barang sebelum diedit">
-                  Stok Awal: <b className="text-[#2A2622]">{product.stock} {unit}</b>
+          {/* 4. PROMINENT STOK EDITOR OR DIGITAL UNIT BANNER */}
+          {isDigitalUnit(unit) ? (
+            <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#3B82F6]/30 space-y-1 shadow-xs">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-extrabold text-[#1D4ED8] flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-[#3B82F6]" />
+                  <span>Produk Digital ({unit})</span>
+                </label>
+                <span className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-wider bg-[#DBEAFE] px-2 py-0.5 rounded border border-[#3B82F6]/30">
+                  Tanpa Stok Fisik
                 </span>
-                {parseInt(stock, 10) !== product.stock && (
-                  <button
-                    type="button"
-                    onClick={() => setStock(product.stock.toString())}
-                    className="text-[10px] font-bold text-[#B84B3E] hover:text-white bg-white hover:bg-[#B84B3E] px-2 py-0.5 rounded border border-[#B84B3E]/30 flex items-center gap-1 transition-all"
-                    title="Kembalikan nilai ke stok awal sebelum diedit"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Reset ({product.stock})</span>
-                  </button>
-                )}
               </div>
+              <p className="text-[11px] text-[#2563EB] font-medium">
+                Produk bertipe {unit} tidak memiliki batas stok fisik (Stok Tanpa Batas / Unlimited).
+              </p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                required
-                min="0"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                className="w-full bg-white border border-[#D97706]/50 rounded-xl px-3.5 py-2.5 text-lg font-black text-[#2A2622] focus:outline-none focus:border-[#D97706] shadow-xs"
-              />
-              <span className="text-xs font-bold text-[#8A8175] shrink-0">{unit}</span>
-            </div>
-
-            {/* Difference / Change Indicator Card */}
-            {(() => {
-              const currentVal = parseInt(stock, 10) || 0;
-              const diff = currentVal - product.stock;
-              if (diff === 0) return null;
-              return (
-                <div className={`p-2 rounded-lg border text-xs font-bold flex items-center justify-between ${
-                  diff > 0
-                    ? 'bg-[#F0F7F2] border-[#3F7D4F]/30 text-[#3F7D4F]'
-                    : 'bg-[#FDF2F0] border-[#B84B3E]/30 text-[#B84B3E]'
-                }`}>
-                  <span>Pratinjau Perubahan Stok:</span>
-                  <span>{diff > 0 ? `+${diff}` : diff} {unit} (Stok Baru: {currentVal})</span>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-[#FEF3C7]/50 border border-[#D97706]/40 space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <label className="block text-xs font-extrabold text-[#2A2622] flex items-center gap-1.5">
+                  <PackageCheck className="w-4 h-4 text-[#D97706]" />
+                  <span>Jumlah Stok Fisik Warung Saat Ini</span>
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold text-[#8A8175] bg-white px-2 py-0.5 rounded border border-[#E8E2D8]" title="Jumlah stok barang sebelum diedit">
+                    Stok Awal: <b className="text-[#2A2622]">{product.stock} {unit}</b>
+                  </span>
+                  {parseInt(stock, 10) !== product.stock && (
+                    <button
+                      type="button"
+                      onClick={() => setStock(product.stock.toString())}
+                      className="text-[10px] font-bold text-[#B84B3E] hover:text-white bg-white hover:bg-[#B84B3E] px-2 py-0.5 rounded border border-[#B84B3E]/30 flex items-center gap-1 transition-all"
+                      title="Kembalikan nilai ke stok awal sebelum diedit"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Reset ({product.stock})</span>
+                    </button>
+                  )}
                 </div>
-              );
-            })()}
+              </div>
 
-          </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  required
+                  min="0"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  className="w-full bg-white border border-[#D97706]/50 rounded-xl px-3.5 py-2.5 text-lg font-black text-[#2A2622] focus:outline-none focus:border-[#D97706] shadow-xs"
+                />
+                <span className="text-xs font-bold text-[#8A8175] shrink-0">{unit}</span>
+              </div>
+
+              {/* Difference / Change Indicator Card */}
+              {(() => {
+                const currentVal = parseInt(stock, 10) || 0;
+                const diff = currentVal - product.stock;
+                if (diff === 0) return null;
+                return (
+                  <div className={`p-2 rounded-lg border text-xs font-bold flex items-center justify-between ${
+                    diff > 0
+                      ? 'bg-[#F0F7F2] border-[#3F7D4F]/30 text-[#3F7D4F]'
+                      : 'bg-[#FDF2F0] border-[#B84B3E]/30 text-[#B84B3E]'
+                  }`}>
+                    <span>Pratinjau Perubahan Stok:</span>
+                    <span>{diff > 0 ? `+${diff}` : diff} {unit} (Stok Baru: {currentVal})</span>
+                  </div>
+                );
+              })()}
+
+            </div>
+          )}
 
           {/* 5. Barcode Pabrik */}
           <div>

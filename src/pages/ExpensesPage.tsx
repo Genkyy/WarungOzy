@@ -4,6 +4,7 @@ import { Expense, MenuItem } from '../types';
 import { usePOSStore } from '../store/usePOSStore';
 import { TrendingDown, Plus, Trash2, PackageCheck, CheckCircle2 } from 'lucide-react';
 import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
+import { isDigitalUnit } from '../utils/productUtils';
 
 export const ExpensesPage: React.FC = () => {
   const {
@@ -182,6 +183,7 @@ export const ExpensesPage: React.FC = () => {
                 required
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Misal: Autan Lotion 50g atau Indomie Goreng"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
               />
@@ -198,9 +200,11 @@ export const ExpensesPage: React.FC = () => {
                     </label>
                     <input
                       type="number"
+                      inputMode="numeric"
                       min="1"
                       value={itemQty}
                       onChange={(e) => setItemQty(e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       placeholder="Misal: 50"
                       className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-black text-[#2A2622] focus:outline-none focus:border-[#D97706]"
                     />
@@ -216,7 +220,7 @@ export const ExpensesPage: React.FC = () => {
                       onChange={(e) => setItemUnit(e.target.value)}
                       className="w-full bg-white border border-[#E8E2D8] rounded-xl px-2.5 py-1.5 text-xs font-semibold text-[#2A2622] focus:outline-none focus:border-[#D97706]"
                     >
-                      {['Dus', 'Renteng', 'Kg', 'Pcs', 'Botol', 'Liter', 'Bal', 'Karung', 'Bungkus', 'Karton'].map((u) => (
+                      {['Dus', 'Renteng', 'Kg', 'Pcs', 'Botol', 'Liter', 'Bal', 'Karung', 'Bungkus', 'Karton', 'Top Up', 'Voucher'].map((u) => (
                         <option key={u} value={u}>
                           {u}
                         </option>
@@ -242,6 +246,7 @@ export const ExpensesPage: React.FC = () => {
                   }
                   setAmount(formatRupiah(raw, true));
                 }}
+                onFocus={(e) => e.target.select()}
                 placeholder="Rp 150.000"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs font-bold text-[#B84B3E] focus:outline-none focus:border-[#D97706] select-text"
               />
@@ -263,6 +268,7 @@ export const ExpensesPage: React.FC = () => {
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
+                onFocus={(e) => e.target.select()}
                 placeholder="Catatan nota/kwitansi..."
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3 py-2 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
               />
@@ -328,7 +334,7 @@ export const ExpensesPage: React.FC = () => {
 
       {/* Smart Restock Confirmation Pop-Up Modal (Handles both Found and Unlisted products) */}
       {restockCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white border border-[#E8E2D8] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl p-5 sm:p-6 space-y-4">
             <div className="flex items-center gap-3">
               <div className={`p-3 rounded-2xl shrink-0 ${
@@ -357,11 +363,17 @@ export const ExpensesPage: React.FC = () => {
               <div className="bg-[#FAF7F2] p-3.5 rounded-xl border border-[#E8E2D8] space-y-1">
                 <p className="text-xs font-bold text-[#2A2622]">{restockCandidate.matchedProduct.name}</p>
                 <p className="text-[11px] text-[#8A8175]">
-                  Stok saat ini: <span className="font-extrabold text-[#D97706]">{restockCandidate.matchedProduct.stock} {restockCandidate.matchedProduct.unit}</span>
+                  Stok saat ini: <span className="font-extrabold text-[#D97706]">{isDigitalUnit(restockCandidate.matchedProduct.unit) ? 'Digital (—)' : `${restockCandidate.matchedProduct.stock} ${restockCandidate.matchedProduct.unit}`}</span>
                 </p>
-                <p className="text-xs text-[#059669] font-bold mt-1">
-                  Apakah Anda ingin menambahkan <span className="underline">+ {restockCandidate.qty} {restockCandidate.unit}</span> ke stok produk ini sebagai Restok?
-                </p>
+                {isDigitalUnit(restockCandidate.matchedProduct.unit) ? (
+                  <p className="text-xs text-[#2563EB] font-bold mt-1">
+                    Produk ini bertipe {restockCandidate.matchedProduct.unit} (Digital - Tanpa Stok Fisik).
+                  </p>
+                ) : (
+                  <p className="text-xs text-[#059669] font-bold mt-1">
+                    Apakah Anda ingin menambahkan <span className="underline">+ {restockCandidate.qty} {restockCandidate.unit}</span> ke stok produk ini sebagai Restok?
+                  </p>
+                )}
               </div>
             ) : (
               /* Case B: Product NOT Found in Master Stock */
@@ -389,24 +401,26 @@ export const ExpensesPage: React.FC = () => {
               </button>
 
               {!restockCandidate.isNew && restockCandidate.matchedProduct ? (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await repository.adjustStock(restockCandidate.matchedProduct!.id!, restockCandidate.qty, 'adjustment_in');
-                      await fetchMasterData();
-                      showToast(`Stok '${restockCandidate.matchedProduct!.name}' bertambah +${restockCandidate.qty} ${restockCandidate.unit}!`, 'success');
-                    } catch (err) {
-                      console.error(err);
-                    } finally {
-                      setRestockCandidate(null);
-                    }
-                  }}
-                  className="px-5 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[40px]"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Ya, Tambahkan Stok (+{restockCandidate.qty})</span>
-                </button>
+                !isDigitalUnit(restockCandidate.matchedProduct.unit) && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await repository.adjustStock(restockCandidate.matchedProduct!.id!, restockCandidate.qty, 'adjustment_in');
+                        await fetchMasterData();
+                        showToast(`Stok '${restockCandidate.matchedProduct!.name}' bertambah +${restockCandidate.qty} ${restockCandidate.unit}!`, 'success');
+                      } catch (err) {
+                        console.error(err);
+                      } finally {
+                        setRestockCandidate(null);
+                      }
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-[#059669] hover:bg-[#047857] text-white font-extrabold text-xs shadow-md transition-all flex items-center gap-1.5 min-h-[40px]"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Ya, Tambahkan Stok (+{restockCandidate.qty})</span>
+                  </button>
+                )
               ) : (
                 <button
                   type="button"

@@ -10,6 +10,7 @@ import {
   CreateOrderDTO
 } from '../types';
 import { DatabaseRepository } from './dbRepository';
+import { isDigitalUnit } from '../utils/productUtils';
 
 class WarungOzyDB extends Dexie {
   categories!: Table<Category, number>;
@@ -49,161 +50,20 @@ export const DEFAULT_CATEGORIES: Omit<Category, 'id'>[] = [
   { name: 'Rokok & Tembakau', icon: 'Flame', sort_order: 7, is_active: true, created_at: new Date().toISOString() },
 ];
 
-const DEFAULT_PRODUCTS = (catIds: Record<string, number>): Omit<MenuItem, 'id'>[] => [
-  {
-    category_id: catIds['Makanan'] || 1,
-    name: 'Indomie Goreng Spesial 85g',
-    description: 'Mie instan goreng favorit warung kelontong',
-    price: 3500,
-    cost_price: 2800,
-    barcode: '8992388213148',
-    stock: 120,
-    unit: 'Bungkus',
-    is_available: true,
-    sort_order: 1,
-    image_path: 'https://images.unsplash.com/photo-1612927601601-6638404737ce?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Makanan'] || 1,
-    name: 'Chitato Keju Supreme 68g',
-    description: 'Keripik kentang rasa keju gurih',
-    price: 9000,
-    cost_price: 6500,
-    barcode: '8993398000037',
-    stock: 18,
-    unit: 'Bungkus',
-    is_available: true,
-    sort_order: 2,
-    image_path: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Minuman'] || 2,
-    name: 'Aqua 600ml Botol',
-    description: 'Air mineral kemasan botol 600ml',
-    price: 3000,
-    cost_price: 2000,
-    barcode: '8998866800004',
-    stock: 48,
-    unit: 'Botol',
-    is_available: true,
-    sort_order: 1,
-    image_path: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Minuman'] || 2,
-    name: 'Teh Botol Sosro 450ml',
-    description: 'Teh melati dalam botol pet 450ml',
-    price: 4000,
-    cost_price: 2500,
-    barcode: '8992388005006',
-    stock: 24,
-    unit: 'Botol',
-    is_available: true,
-    sort_order: 2,
-    image_path: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Minuman'] || 2,
-    name: 'Pocari Sweat 500ml',
-    description: 'Minuman isotonik kemasan botol',
-    price: 8000,
-    cost_price: 5500,
-    barcode: '4901080019646',
-    stock: 15,
-    unit: 'Botol',
-    is_available: true,
-    sort_order: 3,
-    image_path: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Sembako'] || 3,
-    name: 'Beras Premium 1kg',
-    description: 'Beras putih pulen bermutu tinggi',
-    price: 18000,
-    cost_price: 14000,
-    barcode: '8997018850017',
-    stock: 50,
-    unit: 'Kg',
-    is_available: true,
-    sort_order: 1,
-    image_path: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Sembako'] || 3,
-    name: 'Minyak Goreng Sawit 1L',
-    description: 'Minyak goreng jernih kemasan refill',
-    price: 20000,
-    cost_price: 16000,
-    barcode: '8993398430065',
-    stock: 30,
-    unit: 'Liter',
-    is_available: true,
-    sort_order: 2,
-    image_path: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Top Up'] || 4,
-    name: 'Top Up DANA / OVO / GoPay 20k',
-    description: 'Isi ulang saldo e-wallet Rp 20.000',
-    price: 22000,
-    cost_price: 20000,
-    barcode: '',
-    stock: 9999,
-    unit: 'Pcs',
-    is_available: true,
-    sort_order: 1,
-    image_path: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Top Up'] || 4,
-    name: 'Pulsa Telkomsel / XL 50k',
-    description: 'Isi ulang pulsa reguler Rp 50.000',
-    price: 52000,
-    cost_price: 50000,
-    barcode: '',
-    stock: 9999,
-    unit: 'Pcs',
-    is_available: true,
-    sort_order: 2,
-    image_path: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Rokok'] || 5,
-    name: 'Sampoerna A Mild 16',
-    description: 'Rokok filter isi 16 batang',
-    price: 33000,
-    cost_price: 30000,
-    barcode: '8991002101166',
-    stock: 20,
-    unit: 'Bungkus',
-    is_available: true,
-    sort_order: 1,
-    image_path: 'https://images.unsplash.com/photo-1527061011665-3652c757a4d4?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  },
-  {
-    category_id: catIds['Rokok'] || 5,
-    name: 'Permen Kopiko (3 Pcs)',
-    description: 'Permen rasa kopi manis eceran warung',
-    price: 1000,
-    cost_price: 600,
-    barcode: '8996001300018',
-    stock: 200,
-    unit: 'Pcs',
-    is_available: true,
-    sort_order: 2,
-    image_path: 'https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?w=300&auto=format&fit=crop&q=80',
-    created_at: new Date().toISOString()
-  }
+const DEFAULT_PRODUCTS = (_catIds: Record<string, number>): Omit<MenuItem, 'id'>[] => [];
+
+const SAMPLE_PRODUCT_NAMES = [
+  'Indomie Goreng Spesial 85g',
+  'Chitato Keju Supreme 68g',
+  'Aqua 600ml Botol',
+  'Teh Botol Sosro 450ml',
+  'Pocari Sweat 500ml',
+  'Beras Premium 1kg',
+  'Minyak Goreng Sawit 1L',
+  'Top Up DANA / OVO / GoPay 20k',
+  'Pulsa Telkomsel / XL 50k',
+  'Sampoerna A Mild 16',
+  'Permen Kopiko (3 Pcs)'
 ];
 
 const DEFAULT_SETTINGS = [
@@ -230,6 +90,15 @@ export class IndexedDBRepository implements DatabaseRepository {
     // Always force clean seed if categories count is not 5 or missing exact 5 names
     if (categoryCount !== 5 || hasMakanan === 0 || hasTopUp === 0) {
       await this.resetDatabaseWithSeedData();
+    } else {
+      // Auto-remove any remaining sample seed products for production readiness
+      const allItems = await db.menuItems.toArray();
+      const sampleIdsToDelete = allItems
+        .filter((item) => SAMPLE_PRODUCT_NAMES.includes(item.name))
+        .map((item) => item.id!);
+      if (sampleIdsToDelete.length > 0) {
+        await db.menuItems.bulkDelete(sampleIdsToDelete.map(toDexieKey) as any);
+      }
     }
   }
 
@@ -402,7 +271,7 @@ export class IndexedDBRepository implements DatabaseRepository {
         orderItemsToInsert.push({ ...itemObj, id: itemId });
 
         const prod = await db.menuItems.get(toDexieKey(item.menu_item_id) as any);
-        if (prod) {
+        if (prod && !isDigitalUnit(prod.unit)) {
           const newStock = Math.max(0, prod.stock - item.quantity);
           await db.menuItems.update(toDexieKey(item.menu_item_id) as any, { stock: newStock });
 

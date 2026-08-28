@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { MenuItem, CartItem, Order, Category, StoreSettings, ScannedBarcodeLog, BluetoothScannerStatus } from '../types';
 import { repository } from '../services/supabaseRepository';
+import { isDigitalUnit } from '../utils/productUtils';
 
 interface POSState {
   // Navigation
@@ -159,7 +160,9 @@ export const usePOSStore = create<POSState>((set, get) => ({
 
   addToCart: (product, qty = 1) => {
     const { cart, showToast } = get();
-    if (product.stock <= 0) {
+    const isDigital = isDigitalUnit(product.unit);
+
+    if (!isDigital && product.stock <= 0) {
       showToast(`Stok ${product.name} habis!`, 'error');
       return;
     }
@@ -167,7 +170,7 @@ export const usePOSStore = create<POSState>((set, get) => ({
     const existingIndex = cart.findIndex((item) => item.product.id === product.id);
     if (existingIndex > -1) {
       const currentQty = cart[existingIndex].quantity;
-      if (currentQty + qty > product.stock) {
+      if (!isDigital && currentQty + qty > product.stock) {
         showToast(`Stok ${product.name} hanya tersisa ${product.stock}`, 'error');
         return;
       }
@@ -195,9 +198,12 @@ export const usePOSStore = create<POSState>((set, get) => ({
     }
 
     const item = cart.find((i) => i.product.id === productId);
-    if (item && quantity > item.product.stock) {
-      showToast(`Stok maksimal ${item.product.name} adalah ${item.product.stock}`, 'error');
-      return;
+    if (item) {
+      const isDigital = isDigitalUnit(item.product.unit);
+      if (!isDigital && quantity > item.product.stock) {
+        showToast(`Stok maksimal ${item.product.name} adalah ${item.product.stock}`, 'error');
+        return;
+      }
     }
 
     set({

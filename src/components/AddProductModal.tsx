@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { usePOSStore } from '../store/usePOSStore';
 import { repository } from '../services/supabaseRepository';
 import { openFoodFactsService } from '../services/openFoodFactsService';
-import { X, Plus, PackagePlus, Sparkles, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, Plus, PackagePlus, Sparkles, Loader2, Image as ImageIcon, Zap } from 'lucide-react';
 import { formatRupiah, parseRupiah } from '../utils/formatCurrency';
+import { isDigitalUnit } from '../utils/productUtils';
 
 export const AddProductModal: React.FC = () => {
   const {
@@ -143,8 +144,11 @@ export const AddProductModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !price) {
-      showToast('Nama dan harga produk wajib diisi!', 'error');
+    const numPrice = parseRupiah(price);
+    const numCostPrice = parseRupiah(costPrice);
+
+    if (!name.trim() || numPrice <= 0) {
+      showToast('Nama dan harga jual produk wajib diisi dengan benar!', 'error');
       return;
     }
 
@@ -165,10 +169,10 @@ export const AddProductModal: React.FC = () => {
       await repository.createMenuItem({
         name: name.trim(),
         category_id: targetCategoryId,
-        price: parseFloat(price) || 0,
-        cost_price: parseFloat(costPrice) || 0,
+        price: numPrice,
+        cost_price: numCostPrice,
         barcode: finalBarcode,
-        stock: parseInt(stock) || 0,
+        stock: isDigitalUnit(unit) ? 0 : (parseInt(stock, 10) || 0),
         unit: unit,
         description: description.trim(),
         image_path: imagePath.trim(),
@@ -196,7 +200,7 @@ export const AddProductModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white border border-[#E8E2D8] rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-[#E8E2D8] flex items-center justify-between bg-[#FAF7F2]">
@@ -233,6 +237,7 @@ export const AddProductModal: React.FC = () => {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="Misal: Autan Lotion 50g atau Indomie Goreng 85g"
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs text-[#2A2622] focus:outline-none focus:border-[#D97706]"
             />
@@ -325,6 +330,7 @@ export const AddProductModal: React.FC = () => {
                   const raw = e.target.value.replace(/\D/g, '');
                   setPrice(raw ? formatRupiah(raw, true) : '');
                 }}
+                onFocus={(e) => e.target.select()}
                 placeholder="Rp 3.500"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#D97706] focus:outline-none focus:border-[#D97706] select-text"
               />
@@ -339,6 +345,7 @@ export const AddProductModal: React.FC = () => {
                   const raw = e.target.value.replace(/\D/g, '');
                   setCostPrice(raw ? formatRupiah(raw, true) : '');
                 }}
+                onFocus={(e) => e.target.select()}
                 placeholder="Rp 2.800"
                 className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-bold text-[#8A8175] focus:outline-none focus:border-[#D97706] select-text"
               />
@@ -364,39 +371,59 @@ export const AddProductModal: React.FC = () => {
               type="text"
               value={barcode}
               onChange={(e) => setBarcode(e.target.value)}
+              onFocus={(e) => e.target.select()}
               placeholder="Arahkan scanner Bluetooth atau ketik kode barcode (Misal: 899...)"
               data-barcode-input="true"
               className="w-full bg-[#FAF7F2] border border-[#E8E2D8] rounded-xl px-3.5 py-2.5 text-xs font-mono text-[#D97706] focus:outline-none focus:border-[#D97706]"
             />
           </div>
 
-          {/* DEDICATED PROMINENT STOK AWAL BARANG INPUT FIELD */}
-          <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-[#D97706]/30 space-y-1.5 shadow-xs">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-extrabold text-[#2A2622] flex items-center gap-1.5">
-                <PackagePlus className="w-4 h-4 text-[#D97706]" />
-                <span>Jumlah Total Stok Awal Barang *</span>
-              </label>
-              <span className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider bg-[#FEF3C7] px-2 py-0.5 rounded border border-[#D97706]/30">
-                Stok Toko
-              </span>
+          {/* DEDICATED STOK FIELD OR DIGITAL ITEM BADGE */}
+          {isDigitalUnit(unit) ? (
+            <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#3B82F6]/30 space-y-1 shadow-xs">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-extrabold text-[#1D4ED8] flex items-center gap-1.5">
+                  <Zap className="w-4 h-4 text-[#3B82F6]" />
+                  <span>Produk Digital ({unit})</span>
+                </label>
+                <span className="text-[10px] font-bold text-[#3B82F6] uppercase tracking-wider bg-[#DBEAFE] px-2 py-0.5 rounded border border-[#3B82F6]/30">
+                  Tanpa Stok Fisik
+                </span>
+              </div>
+              <p className="text-[11px] text-[#2563EB] font-medium">
+                Produk bertipe {unit} tidak memiliki batas stok fisik (Stok Tanpa Batas / Unlimited).
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                required
-                min="0"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                placeholder="Misal: 10 atau 50"
-                className="w-full bg-white border border-[#D97706]/50 rounded-xl px-4 py-2.5 text-sm font-black text-[#2A2622] focus:outline-none focus:border-[#D97706] shadow-xs"
-              />
-              <span className="text-xs font-bold text-[#8A8175] px-2 shrink-0">{unit}</span>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-[#FEF3C7]/40 border border-[#D97706]/30 space-y-1.5 shadow-xs">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-extrabold text-[#2A2622] flex items-center gap-1.5">
+                  <PackagePlus className="w-4 h-4 text-[#D97706]" />
+                  <span>Jumlah Total Stok Awal Barang *</span>
+                </label>
+                <span className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider bg-[#FEF3C7] px-2 py-0.5 rounded border border-[#D97706]/30">
+                  Stok Toko
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  required
+                  min="0"
+                  value={stock}
+                  onChange={(e) => setStock(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  placeholder="Misal: 10 atau 50"
+                  className="w-full bg-white border border-[#D97706]/50 rounded-xl px-4 py-2.5 text-sm font-black text-[#2A2622] focus:outline-none focus:border-[#D97706] shadow-xs"
+                />
+                <span className="text-xs font-bold text-[#8A8175] px-2 shrink-0">{unit}</span>
+              </div>
+              <p className="text-[10px] text-[#8A8175]">
+                Jumlah fisik unit barang yang siap dijual di warung saat ini (Stok Awal).
+              </p>
             </div>
-            <p className="text-[10px] text-[#8A8175]">
-              Jumlah fisik unit barang yang siap dijual di warung saat ini (Stok Awal).
-            </p>
-          </div>
+          )}
 
           {/* Product Image URL Field & Live Preview */}
           <div>
